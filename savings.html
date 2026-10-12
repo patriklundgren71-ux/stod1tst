@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sparande</title>
+<script>
+(function(){
+ try{
+  var theme = localStorage.getItem('stod1.theme.v1') || 'dark';
+  if(theme !== 'light') theme = 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+ }catch(e){}
+})();
+</script>
+<style>
+ :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--line:#2b3545;--text:#e5e7eb;--muted:#9ca3af;--accent:#0ea5e9;--ink:#0b1220;--ink2:#030712;--focus:#60a5fa22;--activeGlow:#67e8f980}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+ header.app{padding:14px 16px;background:linear-gradient(90deg,var(--panel),#0b1020);border-bottom:1px solid #0b1020}
+ header.app h1{margin:0;font-size:18px}
+ main{display:grid;gap:16px;grid-template-columns:1.1fr 0.9fr;align-items:start;padding:0 16px 16px}
+ @media (max-width: 1000px){ main{grid-template-columns:1fr} }
+ .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+ .card>header{background:transparent;border-bottom:1px solid #283244;padding:12px 14px}
+ .card>header h2{margin:0;font-size:15px}
+ .content-title{margin:0;font-size:15px;font-weight:600;color:var(--text)}
+ .content{padding:14px 16px}
+ .stack{display:flex;flex-direction:column;gap:12px}
+ .btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+ .btn{appearance:button;-webkit-appearance:button;border-radius:8px;border:1px solid var(--line);padding:8px 12px;font-weight:600;cursor:pointer;transition:filter .15s, box-shadow .15s, border-color .15s}
+ .btn-primary{background:linear-gradient(180deg,var(--accent),#0284c7);color:#06253a;border-color:#67e8f9}
+ .btn-ghost{background:transparent;color:#cbd5e1}
+ .btn-primary:hover{filter:brightness(1.05)} .btn-ghost:hover{background:var(--ink)}
+ .btn.active{box-shadow:0 0 0 4px var(--activeGlow); border-color:#a5f3fc}
+ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible{outline:0;border-color:#3b82f6;box-shadow:0 0 0 2px var(--focus)}
+ .hr{height:1px;background:var(--line);margin:6px 0 0 0}
+ .row{display:grid;gap:10px;grid-template-columns:repeat(12,1fr);align-items:center}
+ .row label{grid-column:span 4;color:#cbd5e1;font-size:13px}
+ .row .field{grid-column:span 8;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.content > .row + .row{margin-top:10px}
+.content > .row + .warn{margin-top:10px}
+.content > .row + .btns{margin-top:16px}
+.content > .warn + .btns{margin-top:16px}
+.content > .btns + .row{margin-top:14px}
+ select, input[type=text], input[type=number], textarea{background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;outline:none;min-width:0}
+ select:focus, input:focus, textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 2px var(--focus)}
+ .short{max-width:220px}
+ .ta-large{width:100%;min-height:140px;resize:vertical}
+ .out{white-space:pre-wrap;background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:12px;height:276px;min-height:276px;max-height:276px;overflow:auto}
+ #notes_left_stack{grid-column:1/-1;display:grid;grid-template-columns:1.1fr 0.9fr;gap:16px;align-items:stretch}
+ #notes_left_stack>section.card[data-order-id]{grid-column:1;min-width:0}
+ .summary-card{grid-column:2;display:flex;flex-direction:column;min-width:0}
+ .summary-card>.content{display:flex;flex:1;flex-direction:column;min-height:0}
+ .summary-card .out{flex:1;height:auto;min-height:0;max-height:300px;overflow-y:auto}
+ .summary-card .btns{margin-top:auto}
+ .summary-card>header[aria-expanded="false"] + .content{display:none}
+ @media (max-width: 1000px){#notes_left_stack{grid-template-columns:1fr}#notes_left_stack>section.card[data-order-id],.summary-card{grid-column:1}.summary-card{margin-top:-16px}}
+ #free_notes,#free_notes_tp{line-height:21px;height:102px;min-height:102px;max-height:102px;resize:none;overflow:auto}
+ .muted{color:#9ca3af;font-size:12px}
+ .warn{display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px;font-size:12px}
+ .await-save-grid{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(150px,1fr) minmax(180px,1fr) auto;gap:10px;align-items:end}
+ .await-save-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .await-save-field label{color:#cbd5e1;font-size:13px}
+ .await-save-grid .btn{align-self:end;height:40px}
+ .tp-inline-grid{display:grid;grid-template-columns:minmax(180px,1fr) minmax(160px,1fr) auto;gap:10px;align-items:end}
+ .tp-inline-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .tp-inline-field label{color:#cbd5e1;font-size:13px}
+ .tp-inline-grid .btn{align-self:end;height:40px}
+ .risk-inline-grid{display:grid;grid-template-columns:minmax(160px,1fr) minmax(160px,1fr) auto;gap:10px;align-items:end}
+ .risk-inline-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .risk-inline-field label{color:#cbd5e1;font-size:13px}
+ .risk-inline-field select{width:100%;max-width:none}
+ .risk-inline-grid .btn{align-self:end;height:40px}
+ .content > .risk-inline-grid + .warn{margin-top:10px}
+ .annan-niva-grid{display:grid;grid-template-columns:minmax(180px,220px) minmax(180px,220px) minmax(220px,260px);gap:10px;align-items:end}
+ .annan-niva-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .annan-niva-field label{color:#cbd5e1;font-size:13px}
+ .annan-niva-field input,.annan-niva-field select,.annan-niva-field textarea{width:100%;max-width:none}
+ .annan-niva-reason-free{height:78px;min-height:78px;max-height:78px;resize:none;overflow:auto}
+ .annan-niva-actions{display:flex;justify-content:flex-start;margin-top:0}
+ .annan-niva-grid + .annan-niva-field{margin-top:10px}
+ .content > .annan-niva-field + .annan-niva-actions{margin-top:0}
+ .content > .annan-niva-actions + .warn{margin-top:10px}
+ .avvaktar-sparande-grid{display:grid;grid-template-columns:minmax(280px,380px);gap:10px;align-items:end}
+ .avvaktar-sparande-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .avvaktar-sparande-field label{color:#cbd5e1;font-size:13px}
+ .avvaktar-sparande-field select,.avvaktar-sparande-field textarea{width:100%;max-width:none}
+ .avvaktar-sparande-reason-free{height:78px;min-height:78px;max-height:78px;resize:none;overflow:auto}
+ .avvaktar-sparande-actions{display:flex;justify-content:flex-start;margin-top:0}
+ .content > .avvaktar-sparande-grid + .avvaktar-sparande-field{margin-top:10px}
+ .content > .avvaktar-sparande-field + .avvaktar-sparande-actions{margin-top:0}
+ .content > .avvaktar-sparande-actions + .warn{margin-top:10px}
+
+ .single-action-inline{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}
+ .single-action-inline .btn{align-self:end;height:40px}
+ .annatm-grid-top{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr);gap:10px;align-items:end}
+ .annatm-grid-mid{display:grid;grid-template-columns:minmax(130px,.75fr) minmax(130px,.75fr) minmax(170px,1fr) minmax(130px,.75fr) minmax(170px,1fr);gap:10px;align-items:end;margin-top:10px}
+ .annatm-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .annatm-field label{color:#cbd5e1;font-size:13px;min-height:20px}
+ .annatm-field input, .annatm-field select{width:100%;max-width:none}
+ .annatm-field.use-select input{display:none}
+ .annatm-field.use-input select{display:none}
+ .annatm-field.is-empty label{visibility:hidden}
+ .annatm-field.is-empty input, .annatm-field.is-empty select{visibility:hidden;pointer-events:none}
+ .annatm-actions{display:flex;justify-content:flex-start;margin-top:12px}
+ .annatm-avvaktar-toggle{display:flex;align-items:center;margin-top:10px}
+ .annatm-avvaktar-toggle label{display:inline-flex;align-items:center;gap:6px}
+ .annatm-avvaktar-details[hidden]{display:none}
+ .annatm-reason-grid{display:grid;grid-template-columns:minmax(220px,380px);gap:10px;margin-top:12px}
+ .annatm-grid-mid.tp-mode .annatm-behov,.annatm-grid-mid.tp-mode .annatm-insattning{display:none}
+ .annatm-liv-text{display:none;margin-top:10px}
+ .annatm-liv-text textarea{width:100%;height:78px;min-height:78px;max-height:78px;resize:none;overflow:auto}
+ .annatm-liv-text.is-visible{display:flex}
+
+ .sparbeslut-main{display:flex;flex-wrap:wrap;gap:12px 18px}
+ .sparbeslut-main label,.sparbeslut-toggle{display:inline-flex;align-items:center;gap:6px}
+ .sparbeslut-section{background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:10px}
+ .sparbeslut-section[hidden],.sparbeslut-panel[hidden]{display:none}
+ .sparbeslut-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+ .sparbeslut-grid.annan-sparniva-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .sparbeslut-grid[hidden]{display:none}
+ .sparbeslut-standard-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:end}
+ .sparbeslut-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .sparbeslut-field[hidden]{display:none}
+ .sparbeslut-field label{color:#cbd5e1;font-size:13px}
+ .sparbeslut-field input,.sparbeslut-field select,.sparbeslut-field textarea{width:100%;max-width:none}
+ .sparbeslut-field textarea{height:78px;min-height:78px;max-height:78px;resize:none}
+ @media(max-width:1200px){.sparbeslut-grid,.sparbeslut-standard-row{grid-template-columns:1fr}}
+ :root[data-theme="light"] .sparbeslut-field label{color:#334155}
+ .tp-new-list{display:grid;gap:12px}
+ .tp-new-await[hidden],.tp-new-list[hidden]{display:none}
+ .tp-new-area{background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 12px;display:grid;gap:10px}
+ .tp-new-area-head{display:flex;align-items:center;gap:8px;font-weight:700}
+ .tp-new-area:not(.is-enabled){gap:0}
+ .tp-new-area:not(.is-enabled) .tp-new-grid,.tp-new-area:not(.is-enabled) .tp-new-outcomes{display:none}
+ .tp-new-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .tp-new-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .tp-new-field label{color:#cbd5e1;font-size:13px}
+ .tp-new-field select,.tp-new-field input{width:100%;max-width:none}
+ .tp-new-field select:disabled{opacity:.72;cursor:not-allowed;background:var(--line);color:var(--muted)}
+ .tp-new-outcomes{display:flex;flex-wrap:wrap;gap:10px 16px}
+ .tp-new-outcomes label,.tp-new-shared label{display:inline-flex;align-items:center;gap:6px}
+ .tp-new-shared{display:flex;align-items:center;gap:8px;padding:0 12px;font-size:15px;font-weight:700}
+ .tp-new-main{padding:0 12px}
+ .sparbeslut-main-aligned{padding:0 12px}
+ @media (max-width: 1200px){.tp-new-grid{grid-template-columns:1fr}}
+ :root[data-theme="light"] .tp-new-field label{color:#334155}
+
+ @media (max-width: 1200px){ .await-save-grid{grid-template-columns:1fr} .await-save-grid .btn{justify-self:start;height:auto} .tp-inline-grid{grid-template-columns:1fr} .tp-inline-grid .btn{justify-self:start;height:auto} .risk-inline-grid{grid-template-columns:1fr} .risk-inline-grid .btn{justify-self:start;height:auto} .single-action-inline{grid-template-columns:1fr} .single-action-inline .btn{justify-self:start;height:auto} .annatm-grid-top{grid-template-columns:1fr} .annatm-grid-mid{grid-template-columns:1fr} }
+ #toast{position:fixed;left:16px;top:10px;background:#111827;color:#e5e7eb;border:1px solid #3b4558;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;line-height:1.2;display:none;z-index:9999;box-shadow:0 8px 18px rgba(0,0,0,.28);opacity:0;transform:translateY(-6px);transition:opacity .16s ease, transform .16s ease}
+#toast.show{display:block;opacity:1;transform:translateY(0)}
+/* Collapse (alla kort i Övriga noteringar) */
+.card > header{position:relative}
+.collapse-toggle{position:absolute;right:12px;top:10px;background:transparent;color:#9ca3af;border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
+.collapse-toggle:hover{background:var(--ink)}
+.out-sticky-toggle{position:absolute;right:12px;top:10px;background:transparent;color:#9ca3af;border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
+.out-sticky-toggle:hover{background:var(--ink)}
+.out-sticky-toggle:focus-visible{outline:0;border-color:#3b82f6;box-shadow:0 0 0 4px var(--focus)}
+#sek_out.is-sticky{position:sticky;top:var(--sek-out-sticky-top,16px);align-self:start}
+.collapse-toggle:focus-visible{outline:0;border-color:#3b82f6;box-shadow:0 0 0 4px var(--focus)}
+.card > header[aria-expanded="false"] + .content{display:none}
+.notes-tools-row{grid-column:1/-1;display:grid;grid-template-columns:1.1fr 0.9fr;gap:16px;padding:16px 0 0 0}
+.notes-tools{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+.left-tools{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0}
+.left-tools .btn{padding:7px 10px;font-size:12px}
+:root[data-theme="light"]{
+ --bg:#f3f5f8;
+ --panel:#ffffff;
+ --card:#ffffff;
+ --line:#d6dde8;
+ --text:#0f172a;
+ --muted:#64748b;
+ --accent:#2563eb;
+ --ink:#ffffff;
+ --ink2:#f8fafc;
+ --focus:rgba(37,99,235,.14);
+ --activeGlow:rgba(37,99,235,.18);
+}
+:root[data-theme="light"] header.app{background:linear-gradient(90deg,var(--panel),#eef2f7);border-bottom:1px solid var(--line)}
+:root[data-theme="light"] .card>header{border-bottom:1px solid var(--line)}
+:root[data-theme="light"] .row label{color:#334155}
+:root[data-theme="light"] .await-save-field label{color:#334155}
+:root[data-theme="light"] .tp-inline-field label{color:#334155}
+:root[data-theme="light"] .risk-inline-field label{color:#334155}
+ :root[data-theme="light"] .annatm-field label{color:#334155}
+:root[data-theme="light"] .unit{color:#64748b}
+:root[data-theme="light"] .btn-primary,
+:root[data-theme="light"] .gs-tab[aria-selected="true"]{background:linear-gradient(180deg,var(--accent),#1d4ed8);color:#ffffff;border-color:#2563eb}
+:root[data-theme="light"] .btn-ghost,
+:root[data-theme="light"] .gs-tab{color:#334155}
+:root[data-theme="light"] .btn-ghost:hover,
+:root[data-theme="light"] .collapse-toggle:hover,
+:root[data-theme="light"] .out-sticky-toggle:hover{background:#eef2f7}
+:root[data-theme="light"] .warn{color:#92400e;background:#fff7ed;border-color:#fdba74}
+:root[data-theme="light"] #toast{background:#ffffff;color:#0f172a;border-color:#cbd5e1;box-shadow:0 8px 18px rgba(15,23,42,.14)}
+:root[data-theme="light"] #rikt_modal,
+:root[data-theme="light"] #rikt_modal > div{background-color:transparent}
+:root[data-theme="light"] #rikt_modal{background:rgba(15,23,42,.18) !important}
+:root[data-theme="light"] .collapse-toggle{color:#64748b}
+:root[data-theme="light"] .out-sticky-toggle{color:#64748b}
+</style>
+</head>
+<body>
+<main>
+ <div class="notes-tools-row"><div id="notes_tools_host" class="notes-tools"></div><div></div></div>
+ <div class="stack" id="notes_left_stack" style="gap:16px">
+ <section class="card" data-order-id="risk" data-card-kind="hybrid" data-hybrid-init="riskCard" data-storage-ns="sparande.hybrid.risk"><header><h2>Risk</h2></header>
+ <div class="content stack">
+ <div class="risk-inline-grid">
+ <div class="risk-inline-field"><label>Utgångsläge</label><select data-role="risk-initial"><option value="">(välj)</option><option>låg risk</option><option>medelrisk</option><option>hög risk</option></select></div>
+ <div class="risk-inline-field"><label>Rekommendation</label><select data-role="risk-recommendation"><option value="">(välj)</option><option>låg risk</option><option>medelrisk</option><option>hög risk</option></select></div>
+ </div>
+ <div class="btns"><button class="btn btn-primary" type="button">Kopiera</button></div>
+ <div class="warn">Välj både Utgångsläge och Rekommendation.</div>
+ <div class="hr"></div>
+ </div>
+ </section>
+<section class="card" data-order-id="tp_new" data-card-kind="hybrid" data-hybrid-init="tpNewCard" data-storage-ns="sparande.hybrid.tp_new" data-block-id="tp_new"><header><h2>Tjänstepension</h2></header>
+ <div class="content stack">
+ <div class="tp-new-shared"><label><input type="checkbox" data-role="shared">Delad skärm</label></div>
+ <div class="sparbeslut-main tp-new-main"><label><input type="radio" name="tp_new_main" value="changes">Ändringar genomförs</label><label><input type="radio" name="tp_new_main" value="await">Avvaktar med beslut</label><label><input type="radio" name="tp_new_main" value="none">Inga ändringar behövs</label></div>
+ <div class="tp-new-await" data-part="tp-await" hidden>
+  <div class="sparbeslut-grid"><div class="sparbeslut-field"><label>Standardtext</label><select data-role="tp-await-standard"><option value="">(välj)</option><option value="Tjänstepension">Tjänstepension</option></select></div></div>
+  <div class="sparbeslut-standard-row" data-part="tp-await-standard-fields" hidden><div class="sparbeslut-field"><label>Sparform</label><select data-role="tp-await-sparform"><option value="">(välj)</option><option value="Fond">Fond</option><option value="Traditionellt">Traditionellt</option></select></div><div class="sparbeslut-field"><label>Återbetalningsskydd</label><select data-role="tp-await-repayment"><option value="">(välj)</option><option value="Med återbetalningsskydd">Med återbetalningsskydd</option><option value="Utan återbetalningsskydd">Utan återbetalningsskydd</option></select></div></div>
+  <div class="sparbeslut-grid"><div class="sparbeslut-field"><label>Orsak</label><select data-role="tp-await-reason"><option value="">(välj)</option><option value="vill_fundera">Vill fundera</option><option value="jamfora_alternativen">Vill jämföra alternativen</option><option value="radgora_annan">Vill rådgöra med någon annan</option><option value="nojd_nuvarande">Nöjd med nuvarande lösning</option></select></div></div>
+  <div class="sparbeslut-field"><label>Orsak - fritext</label><textarea data-role="tp-await-free"></textarea></div>
+ </div>
+ <div class="tp-new-list" data-part="tp-areas" hidden>
+  <div class="tp-new-area" data-area="saflo"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">SAF-LO</div><div class="tp-new-grid"><div class="tp-new-field"><label>Försäkring</label><select data-role="product"><option value="">(välj)</option><option>Folksam LO Fond</option><option>Folksam Tjänstepension</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="flytt">Flytt</label></div></div>
+  <div class="tp-new-area" data-area="akap"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">AKAP-KR/KAP-KL</div><div class="tp-new-grid"><div class="tp-new-field"><label>Försäkring</label><select data-role="product" disabled title="Fast val för avtalsområdet" aria-label="Försäkring, fast val"><option>Folksam LO Fond</option></select></div><div class="tp-new-field"><label>Valcentral</label><select data-role="valcentral"><option value="">(välj)</option><option>Pensionsvalet</option><option>Valcentralen</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="requested">Sammanställning begärd</label><label><input type="checkbox" data-role="received">Flytt genomförd</label></div></div>
+  <div class="tp-new-area" data-area="pa16"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">PA16</div><div class="tp-new-grid"><div class="tp-new-field"><label>Försäkring</label><select data-role="product" disabled title="Fast val för avtalsområdet" aria-label="Försäkring, fast val"><option>Folksam Fondförsäkring</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="requested">Sammanställning begärd</label><label><input type="checkbox" data-role="received">Flytt genomförd</label></div></div>
+  <div class="tp-new-area" data-area="itp"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">ITP</div><div class="tp-new-grid"><div class="tp-new-field"><label>Försäkring</label><select data-role="product" disabled title="Fast val för avtalsområdet" aria-label="Försäkring, fast val"><option>Folksam Tjänstepension</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="requested">Sammanställning begärd</label><label><input type="checkbox" data-role="received">Flytt genomförd</label></div></div>
+  <div class="tp-new-area" data-area="other"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">Övriga</div><div class="tp-new-grid"><div class="tp-new-field"><label>Avtalsområde</label><input type="text" data-role="custom-area"></div><div class="tp-new-field"><label>Valcentral</label><input type="text" data-role="custom-valcentral"></div><div class="tp-new-field"><label>Försäkring</label><select data-role="product"><option value="">(välj)</option><option>Folksam LO Fond</option><option>Folksam Tjänstepension</option><option>Folksam Fondförsäkring</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="flytt">Flytt</label></div></div>
+ </div>
+ <div class="warn"></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+<section class="card" data-order-id="annat_mal" data-card-kind="hybrid" data-hybrid-init="annatMalEnkelCard" data-storage-ns="sparande.hybrid.annatmal.enkel" data-block-id="annat_mal"><header><h2>Annat mål hittats under rådgivningen</h2></header>
+ <div class="content">
+ <div class="annatm-grid-top">
+ <div class="annatm-field"><label for="annat_mal_urspr">Ursprungsmål</label><select id="annat_mal_urspr" class="short"><option value="">(välj)</option><option value="Pension">Pensionsspar</option><option value="Målspar">Målspar</option><option value="Tjänstepension">Tjänstepension</option><option value="Livförsäkring">Livförsäkring</option></select></div>
+ <div class="annatm-field"><label for="annat_mal_tillagg">Tilläggsmål</label><select id="annat_mal_tillagg" class="short"><option value="">(välj)</option><option value="Pension">Pensionsspar</option><option value="Målspar">Målspar</option><option value="Tjänstepension">Tjänstepension</option><option value="Livförsäkring">Livförsäkring</option></select></div>
+ </div>
+ <div class="annatm-actions"><button class="btn btn-primary" id="btn_annat_mal_add" type="button">Kopiera</button></div>
+ <div id="annat_mal_warn" class="warn">Välj Ursprungsmål och Tilläggsmål.</div>
+ <div class="hr"></div>
+ </div>
+ </section>
+<section class="card" data-order-id="sparbeslut" data-card-kind="hybrid" data-hybrid-init="sparbeslutCard" data-storage-ns="sparande.hybrid.sparbeslut" data-block-id="sparbeslut"><header><h2>Sparbeslut</h2></header>
+ <div class="content stack">
+  <div class="sparbeslut-main sparbeslut-main-aligned">
+   <label><input type="radio" name="sparbeslut_main" value="genomfors">Sparande genomförs</label>
+   <label><input type="radio" name="sparbeslut_main" value="avvaktar">Avvaktar med sparande</label>
+   <label><input type="radio" name="sparbeslut_main" value="avradan">Avrådan</label>
+  </div>
+  <div class="sparbeslut-panel" data-panel="genomfors" hidden>
+   <div class="sparbeslut-section"><label class="sparbeslut-toggle"><input type="checkbox" data-role="annan-enabled">Annan sparnivå</label><div data-part="annan" hidden><div class="sparbeslut-grid annan-sparniva-grid"><div class="sparbeslut-field"><label>Typ av förändring</label><select data-role="annan-type"><option value="">(välj)</option><option value="nyspar">Nyspar</option><option value="hojning">Höjning</option></select></div><div class="sparbeslut-field"><label>Månadssparande</label><input type="number" min="0" data-role="annan-monthly"></div><div class="sparbeslut-field"><label>Engångsinsättning</label><input type="number" min="0" data-role="annan-lump"></div><div class="sparbeslut-field"><label>Orsak</label><select data-role="annan-reason"><option value="">(välj)</option><option value="storre_ekonomiskt_utrymme">Vill ha mer kvar varje månad</option><option value="ekonomin_forandras">Ekonomin förändras snart</option><option value="annat_sparmal">Prioriterar ett annat sparmål</option><option value="storre_trygghet">Vill spara mer för ökad trygghet</option><option value="na_malet_snabbare">Vill spara mer för att nå målet snabbare</option></select></div></div><div class="sparbeslut-field"><label>Orsak - fritext</label><textarea data-role="annan-free"></textarea></div></div></div>
+   <div class="sparbeslut-section"><div class="sparbeslut-main"><label class="sparbeslut-toggle"><input type="checkbox" data-role="buffert-standard">Buffert - Standardtext</label><label class="sparbeslut-toggle"><input type="checkbox" data-role="buffert-goal-enabled">Buffert - Tydligt mål</label></div><div class="sparbeslut-grid" data-part="buffert-fields" hidden><div class="sparbeslut-field"><label>Tid i månader</label><input type="number" min="1" data-role="buffert-months"></div><div class="sparbeslut-field"><label>Månadssparande</label><input type="number" min="1" data-role="buffert-monthly"></div><div class="sparbeslut-field"><label>Buffertmål</label><input type="text" data-role="buffert-goal" readonly></div></div></div>
+   <div class="sparbeslut-section"><label class="sparbeslut-toggle"><input type="checkbox" data-role="medlemspar-enabled">Medlemspar</label></div>
+   <div class="sparbeslut-section"><label class="sparbeslut-toggle"><input type="checkbox" data-role="avslutar-depa-enabled">Avslutar depå</label></div>
+  </div>
+  <div class="sparbeslut-panel" data-panel="avvaktar" hidden>
+   <div class="sparbeslut-grid"><div class="sparbeslut-field"><label>Standardtext</label><select data-role="avv-standard"><option value="">(välj)</option><option value="Målspar">Målspar</option><option value="Pension">Pensionsspar</option></select></div></div>
+   <div class="sparbeslut-standard-row" data-part="avv-standard-fields" hidden><div class="sparbeslut-field" data-role-wrap="avv-monthly"><label>Månadsspar</label><input type="number" min="0" step="1" inputmode="numeric" data-role="avv-monthly"></div><div class="sparbeslut-field" data-role-wrap="avv-lump"><label>Insättning</label><input type="number" min="0" step="1" inputmode="numeric" data-role="avv-lump"></div><div class="sparbeslut-field" data-role-wrap="avv-sparform"><label>Sparform</label><select data-role="avv-sparform"><option value="">(välj)</option><option value="Fond">Fond</option><option value="Traditionellt">Trad</option></select></div><div class="sparbeslut-field" data-role-wrap="avv-years" hidden><label>Antal år</label><input type="number" min="0" step="1" inputmode="numeric" data-role="avv-years"></div><div class="sparbeslut-field" data-role-wrap="avv-goal" hidden><label>Beräknat målbelopp</label><input type="number" data-role="avv-goal" readonly></div><div class="sparbeslut-field" data-role-wrap="avv-repayment" hidden><label>Återbetalningsskydd</label><select data-role="avv-repayment"><option value="">(välj)</option><option value="Med återbetalningsskydd">Med återbetalningsskydd</option><option value="Utan återbetalningsskydd">Utan återbetalningsskydd</option></select></div></div>
+   <div class="sparbeslut-grid"><div class="sparbeslut-field"><label>Orsak</label><select data-role="avv-reason"><option value="">(välj)</option><option value="storre_ekonomiskt_utrymme">Vill ha mer kvar varje månad</option><option value="se_over_ovrig_ekonomi">Vill först se över övrig ekonomi</option><option value="ekonomin_forandras">Ekonomin förändras snart</option><option value="annat_sparmal">Prioriterar ett annat sparmål</option><option value="jamfora_alternativ">Vill jämföra andra alternativ</option></select></div></div><div class="sparbeslut-field"><label>Orsak - fritext</label><textarea data-role="avv-free"></textarea></div>
+  </div>
+  <div class="sparbeslut-panel" data-panel="avradan" hidden>
+   <div class="sparbeslut-grid"><div class="sparbeslut-field"><label>Orsak till avrådan</label><select data-role="avradan-reason"><option value="">(välj)</option><option value="begransad_buffert">Begränsad buffert</option><option value="lan_hog_ranta">Lån med hög ränta</option><option value="hog_kunskap">Hög kunskap och egen förvaltning</option></select></div><div class="sparbeslut-field" data-role-wrap="avradan-amount" hidden><label>Rekommenderat månadssparande</label><input type="number" min="1" step="1" inputmode="numeric" data-role="avradan-amount"></div></div><div class="sparbeslut-field"><label>Orsak - fritext</label><textarea data-role="avradan-free"></textarea></div>
+  </div>
+  <div class="warn"></div>
+ </div></section>
+
+
+   <section class="card" data-order-id="buff" data-card-hidden="1"><header><h2>Begränsad buffert</h2></header>
+ <div class="content stack">
+ <div class="btns" data-group="buff">
+ <button class="btn btn-ghost" id="btn_buff_avr" title="Välj när du avråder från sparande eftersom buffert saknas och utrymme inte finns." type="button">Avrådan</button>
+ <button class="btn btn-ghost" id="btn_buff_utry" title="Välj när det finns utrymme för både sparande och att bygga upp en buffert." type="button">Utrymme finns</button>
+ </div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="avvaktar" data-card-hidden="1"><header><h2>Avvaktar med sparande</h2></header>
+ <div class="content">
+ <div class="await-save-grid">
+ <div class="await-save-field"><label for="await_save_amount">Sparbelopp</label><input id="await_save_amount" class="short" type="number" min="0" inputmode="numeric" placeholder="t.ex. 1000" /></div>
+ <div class="await-save-field"><label for="await_save_form">Sparform</label><select id="await_save_form" class="short"><option value="">(Välj)</option><option value="fond">fond</option><option value="traditionellt ">traditionellt </option></select></div>
+ <div class="await-save-field"><label for="await_save_reason">Orsak till att avvakta</label><select id="await_save_reason" class="short"><option value="">(Välj)</option><option value="annat_sparande">Annat sparande</option><option value="ekonomiskt_utrymme">Ekonomiskt utrymme</option><option value="vill_avvakta">Vill avvakta</option></select></div>
+ <button class="btn btn-primary" id="btn_await_save_copy" title="Välj när kunden avvaktar med rekommenderat sparande." type="button">Kopiera</button>
+ </div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="fm" data-card-hidden="1"><header><h2>Förmånstagarförordnande</h2></header>
+ <div class="content">
+ <div class="row"><label for="fm_sandning">Skicka blankett via</label><div class="field"><select id="fm_sandning" class="short"><option value="">(välj)</option><option>E-post</option><option>Postadress</option></select></div></div>
+ <div id="fm_warn" class="warn">Välj <b>E‑post</b> eller <b>Postadress</b>.</div>
+ <div class="btns"><button class="btn btn-primary" id="btn_fm_add" title="Välj när förmånstagarförordnande ska skickas via e-post eller post." type="button">Lägg till Förmånstagarförordnande</button></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="grp" data-card-hidden="1"><header><h2>Gruppförsäkringar och skador</h2></header>
+ <div class="content">
+ <div class="btns"><button class="btn btn-primary" id="btn_grp_copy" title="Välj när du i första utgående samtalet har pratat om gruppförsäkringar och skador." type="button">Lägg till grp/skador</button></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="annat_legacy" data-card-hidden="1"><header><h2>Om ett annat mål hittats under rådgivningens gång</h2></header>
+ <div class="content">
+ <div class="row"><label for="annat_urspr">Ursprungsmål</label><div class="field"><select id="annat_urspr" class="short"><option value="">(välj)</option><option>pensionssparande</option><option>målsparande</option><option>barnsparande</option></select></div></div>
+ <div class="row"><label for="annat_tillagg">Tilläggsmål</label><div class="field"><select id="annat_tillagg" class="short"><option value="">(välj)</option><option>pensionssparande</option><option>målsparande</option><option>barnsparande</option></select></div></div>
+ <div id="annat_warn" class="warn">Välj både <b>Ursprungsmål</b> och <b>Tilläggsmål</b>.</div>
+ <div class="btns"><button class="btn btn-primary" id="btn_annat_add" title="Välj när ett annat mål har identifierats under rådgivningens gång." type="button">Lägg till Annat mål</button></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+
+ <section class="card" data-order-id="annat" data-card-hidden="1" data-card-disabled="1" data-card-kind="hybrid" data-hybrid-init="annatMalCard" data-storage-ns="sparande.hybrid.annatmal"><header><h2>Avvaktar med sparande</h2></header>
+ <div class="content">
+ <div class="annatm-grid-top">
+ <div class="annatm-field"><label for="annat_h_standard">Standardtext</label><select id="annat_h_standard" class="short"><option value="">(välj)</option><option value="Målspar">Målspar</option><option value="Pension">Pensionsspar</option><option value="Tjänstepension">Tjänstepension</option></select></div>
+ </div>
+ <div class="annatm-avvaktar-details">
+ <div class="annatm-grid-mid">
+ <div class="annatm-field annatm-behov"><label for="annat_h_behov">Månadsspar</label><input id="annat_h_behov" class="short" type="number" min="0" step="1" inputmode="numeric" placeholder="t.ex. 1000" /></div>
+ <div class="annatm-field annatm-insattning"><label for="annat_h_insattning">Insättning</label><input id="annat_h_insattning" class="short" type="number" min="0" step="1" inputmode="numeric" placeholder="t.ex. 50000" /></div>
+ <div class="annatm-field annatm-sparform"><label for="annat_h_sparform">Sparform</label><select id="annat_h_sparform" class="short"><option value="">(välj)</option><option value="Fond">Fond (7%)</option><option value="Traditionellt">Trad (4%)</option></select></div>
+ <div class="annatm-field annatm-context1 is-empty use-input"><label id="annat_h_ctx1_label" for="annat_h_ctx1_input">&nbsp;</label><input id="annat_h_ctx1_input" class="short" type="number" min="0" step="1" inputmode="numeric" /><select id="annat_h_ctx1_select" class="short"><option value="">(välj)</option><option value="Med återbetalningsskydd">Med återbetalningsskydd</option><option value="Utan återbetalningsskydd">Utan återbetalningsskydd</option></select></div>
+ <div class="annatm-field annatm-context2 is-empty use-input"><label id="annat_h_ctx2_label" for="annat_h_ctx2_input">&nbsp;</label><input id="annat_h_ctx2_input" class="short" type="number" min="0" step="1" inputmode="numeric" /></div>
+ </div>
+ <div class="annatm-field annatm-liv-text"><label for="annat_h_liv_text">Fritext</label><textarea id="annat_h_liv_text" rows="3" placeholder="Skriv text om livförsäkring här…"></textarea></div>
+ <div class="annatm-reason-grid"><div class="annatm-field"><label for="annat_h_reason">Orsak</label><select id="annat_h_reason" class="short"><option value="">(välj)</option></select></div><div class="annatm-field"><label for="annat_h_reason_free">Orsak - fritext</label><textarea id="annat_h_reason_free" rows="3" placeholder="Skriv egen orsak här…"></textarea></div></div>
+ </div>
+ <div class="annatm-actions"><button class="btn btn-primary" id="btn_annat_h_add" title="Välj när ett annat mål har identifierats under rådgivningen." type="button">Lägg till</button></div>
+ <div id="annat_h_warn" class="warn">Välj obligatoriska fält.</div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ 
+ <section class="card" data-order-id="ppm" data-card-hidden="1"><header><h2>Premiepension</h2></header>
+ <div class="content stack">
+ <div class="btns" data-group="ppm">
+ <button class="btn btn-ghost" id="btn_ppm_byter" title="Välj när kunden flyttar PPM till AP7 Såfa." type="button">Byter</button>
+ <button class="btn btn-ghost" id="btn_ppm_behaller" title="Välj när du rekommenderar att kunden behåller AP7 Såfa." type="button">Behåller</button>
+ <button class="btn btn-ghost" id="btn_ppm_tackarnej" title="Välj när du har rekommenderat byte till AP7 Såfa men kunden tackar nej." type="button">Kund tackar nej</button>
+ </div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="schablon" data-card-hidden="1"><header><h2>Schablonberäkning</h2></header>
+ <div class="content">
+ <div class="single-action-inline"><div></div><button class="btn btn-primary" id="btn_schablon_add" title="Välj när pensionen har schablonberäknats i stället för att räknas på exakta uppgifter." type="button">Lägg till schablontext</button></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="tp" data-card-hidden="1"><header><h2>Tjänstepension – skärmdelning/fullmakt</h2></header>
+ <div class="content">
+ <div class="tp-inline-grid">
+ <div class="tp-inline-field"><label for="tp_placeras">Placeras hos</label><select id="tp_placeras" class="short"><option value="">(välj)</option><option>Folksam tjänstepension</option><option>Folksam LO Fond</option></select></div>
+ <div class="tp-inline-field"><label for="tp_valcentral">Valcentral</label><select id="tp_valcentral" class="short"><option value="">(välj)</option><option>Fora</option><option>Avtalat</option><option>Pensionsvalet</option><option>Valcentralen</option></select></div>
+ <button class="btn btn-primary" id="btn_tp_add" title="Välj när omval eller flytt av tjänstepension görs via skärmdelning eller fullmakt." type="button">Lägg till Tjänstepension (skärmdelning/fullmakt)</button>
+ </div>
+ <div id="tp_warn" class="warn">Välj både <b>Placeras hos</b> och <b>Valcentral</b>.</div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="annan_sparniva" data-card-hidden="1" data-card-disabled="1" data-card-kind="hybrid" data-hybrid-init="annanSparnivaCard" data-storage-ns="sparande.hybrid.annansparniva" data-block-id="annan_sparniva" data-exclusive-group="sparande.sparstart.choice"><header><h2>Annan sparnivå</h2></header>
+ <div class="content stack">
+ <div class="annan-niva-grid">
+ <div class="annan-niva-field"><label for="annan_sparniva_amount">Månadssparande</label><input id="annan_sparniva_amount" class="short" type="number" min="0" step="1" inputmode="numeric" placeholder="t.ex. 500" /></div>
+ <div class="annan-niva-field"><label for="annan_sparniva_lump">Engångsinsättning</label><input id="annan_sparniva_lump" class="short" type="number" min="0" step="1" inputmode="numeric" placeholder="t.ex. 25 000" /></div>
+ <div class="annan-niva-field"><label for="annan_sparniva_reason">Orsak</label><select id="annan_sparniva_reason" class="short"><option value="">(välj)</option></select></div>
+ </div>
+ <div class="annan-niva-field"><label for="annan_sparniva_reason_free">Orsak - fritext</label><textarea id="annan_sparniva_reason_free" class="annan-niva-reason-free" rows="3" placeholder="Skriv egen orsak här…"></textarea></div>
+ <div class="annan-niva-actions"><button class="btn btn-primary" id="btn_annan_sparniva_add" title="Lägg till eller uppdatera annan sparnivå." type="button">Lägg till</button></div>
+ <div id="annan_sparniva_warn" class="warn">Fyll i månadssparande eller engångsinsättning och ange minst en orsak.</div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="avvaktar_sparande" data-card-hidden="1" data-card-disabled="1" data-card-kind="hybrid" data-hybrid-init="avvaktarSparandeCard" data-storage-ns="sparande.hybrid.avvaktarsparande" data-block-id="avvaktar_sparande" data-exclusive-group="sparande.sparstart.choice"><header><h2>Avvaktar med sparande</h2></header>
+ <div class="content stack">
+ <div class="avvaktar-sparande-grid">
+ <div class="avvaktar-sparande-field"><label for="avvaktar_sparande_reason">Orsak</label><select id="avvaktar_sparande_reason" class="short"><option value="">(välj)</option></select></div>
+ </div>
+ <div class="avvaktar-sparande-field"><label for="avvaktar_sparande_reason_free">Orsak - fritext</label><textarea id="avvaktar_sparande_reason_free" class="avvaktar-sparande-reason-free" rows="3" placeholder="Skriv egen orsak här…"></textarea></div>
+ <div class="avvaktar-sparande-actions"><button class="btn btn-primary" id="btn_avvaktar_sparande_add" title="Lägg till eller uppdatera avvaktar med sparande." type="button">Lägg till</button></div>
+ <div id="avvaktar_sparande_warn" class="warn">Ange minst en orsak.</div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="utfall" data-card-hidden="1" data-card-disabled="1" data-card-kind="hybrid" data-hybrid-init="utfallCard" data-storage-ns="sparande.hybrid.utfall" data-block-id="utfall"><header><h2>Medlemspar</h2></header>
+ <div class="content stack">
+ <div class="btns" id="utfall_buttons">
+ <button class="btn btn-ghost" id="btn_utfall_medlemspar" title="Välj när du vill dokumentera utfall kopplat till medlemsspar." type="button">Lägg till</button>
+ </div>
+ <div class="hr"></div>
+ </div>
+ </section>
+
+  </div>
+ <!-- Högerspalt -->
+ <div class="summary-grid is-sticky" id="sek_out">
+ <div class="card summary-card" id="summary_tp"><header aria-expanded="true"><h2>Tjänstepension - sammanställd text</h2></header>
+ <div class="content stack" id="summary_tp_content">
+ <div id="output_tp" class="out" aria-live="polite" aria-atomic="true">— tomt —</div>
+ <div class="warn" id="warn_copy_tp">Ingen tjänstepensionstext att kopiera.</div>
+ <div class="btns"><button class="btn btn-primary" id="btn_copy_tp" type="button">Kopiera</button></div>
+ <div class="hr"></div>
+ <div class="content-title">Egna tillägg</div>
+ <textarea id="free_notes_tp" class="ta-large" rows="5" placeholder="Skriv övrig dokumentation här…"></textarea>
+ </div>
+ </div>
+ <div class="card summary-card" id="summary_spar"><header aria-expanded="true"><h2>Sparbeslut - sammanställd text</h2></header>
+ <div class="content stack" id="summary_spar_content">
+ <div id="output_spar" class="out" aria-live="polite" aria-atomic="true">— tomt —</div>
+ <div class="warn" id="warn_copy_spar">Ingen spartext att kopiera.</div>
+ <div class="btns"><button class="btn btn-primary" id="btn_copy_spar" type="button">Kopiera</button></div>
+ <div class="hr"></div>
+ <div class="content-title">Egna tillägg</div>
+ <textarea id="free_notes" class="ta-large" rows="5" placeholder="Skriv övrig dokumentation här…"></textarea>
+ </div>
+ </div>
+ </div>
+</main>
+<div id="toast"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+// safeStorage + toast
+const safeStorage = (()=>{try{const t='__t'+Math.random().toString(36).slice(2);localStorage.setItem(t,'1');localStorage.removeItem(t);return localStorage;}catch(e){return{getItem:()=>null,setItem:()=>{},removeItem:()=>{}}}})();
+function showToast(m){const t=document.getElementById('toast');if(!t) return; t.textContent='✓ '+m;t.style.display='block';t.classList.add('show');clearTimeout(t.__to);t.__to=setTimeout(()=>{t.classList.remove('show');setTimeout(()=>{if(!t.classList.contains('show')) t.style.display='none';},170);},2200)}
+function initStickyOut(){
+ const card=document.getElementById('sek_out');
+ const btn=document.getElementById('btn_sticky_out');
+ if(!card || !btn) return;
+ const key='sparande.stickyOut.v1';
+ function updateStickyTop(){
+  const wasSticky=card.classList.contains('is-sticky');
+  if(wasSticky) card.classList.remove('is-sticky');
+  const rect=card.getBoundingClientRect();
+  const top=Math.max(0, Math.round(rect.top + (window.scrollY || window.pageYOffset || 0)));
+  card.style.setProperty('--sek-out-sticky-top', top+'px');
+  if(wasSticky) card.classList.add('is-sticky');
+ }
+ function loadLocked(){ try{ return safeStorage.getItem(key)!=='0'; }catch(_){ return true; } }
+ function saveLocked(on){ try{ safeStorage.setItem(key, on ? '1' : '0'); }catch(_){ } }
+ function apply(on){ updateStickyTop(); card.classList.toggle('is-sticky', !!on); btn.textContent=on ? 'Lås upp' : 'Lås fönster'; btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+ apply(loadLocked());
+ window.addEventListener('resize', updateStickyTop);
+ btn.addEventListener('click', function(){ const next=!card.classList.contains('is-sticky'); saveLocked(next); apply(next); });
+}
+initStickyOut();
+(function(){
+ const stack=document.getElementById('notes_left_stack');
+ const shell=document.getElementById('sek_out');
+ const tpCard=stack&&stack.querySelector(':scope > section.card[data-order-id="tp_new"]');
+ const sparCard=stack&&stack.querySelector(':scope > section.card[data-order-id="sparbeslut"]');
+ const tpSummary=document.getElementById('summary_tp');
+ const sparSummary=document.getElementById('summary_spar');
+ if(!stack||!tpCard||!sparCard||!tpSummary||!sparSummary) return;
+ stack.appendChild(tpSummary);
+ stack.appendChild(sparSummary);
+ if(shell) shell.remove();
+ const riskCard=stack.querySelector(':scope > section.card[data-order-id="risk"]');
+ const otherGoalCard=stack.querySelector(':scope > section.card[data-order-id="annat_mal"]');
+ [tpCard,sparCard,riskCard,otherGoalCard].forEach(function(card){ if(card) stack.appendChild(card); });
+ const pairs=[[tpCard,tpSummary],[sparCard,sparSummary]];
+ function syncRows(){
+  const cards=[...stack.querySelectorAll(':scope > section.card[data-order-id]')].filter(function(card){ return card.dataset.cardHidden!=='1' && !card.hidden && card.getAttribute('data-card-disabled')!=='1'; });
+  const singleColumn=window.matchMedia('(max-width: 1000px)').matches;
+  cards.forEach(function(card,index){
+   const pairedBefore=singleColumn ? pairs.filter(function(pair){ return cards.indexOf(pair[0])<index; }).length : 0;
+   card.style.gridRow=String(index+1+pairedBefore);
+  });
+  pairs.forEach(function(pair){
+   const index=cards.indexOf(pair[0]);
+   if(index<0) return;
+   const pairedBefore=singleColumn ? pairs.filter(function(other){ return cards.indexOf(other[0])<index; }).length : 0;
+   pair[1].style.gridRow=String(singleColumn ? index+2+pairedBefore : index+1);
+  });
+ }
+ function syncExpanded(card,summary){
+  const sourceHeader=card.querySelector(':scope > header');
+  const summaryHeader=summary.querySelector(':scope > header');
+  if(!sourceHeader||!summaryHeader) return;
+  const apply=function(){ summaryHeader.setAttribute('aria-expanded',sourceHeader.getAttribute('aria-expanded')==='false'?'false':'true'); };
+  apply();
+  new MutationObserver(apply).observe(sourceHeader,{attributes:true,attributeFilter:['aria-expanded']});
+ }
+ pairs.forEach(function(pair){ syncExpanded(pair[0],pair[1]); });
+ syncRows();
+ new MutationObserver(syncRows).observe(stack,{childList:true});
+ window.addEventListener('resize',syncRows);
+})();
+document.querySelectorAll('section.card[data-order-id]').forEach(card=>{ if(card.dataset.cardHidden==='1'){ card.hidden=true; card.setAttribute('data-card-disabled','1'); } });
+const savingsLeftStack=document.getElementById('notes_left_stack');
+const store={};
+const hybridCardRegistry=new Map();
+const hybridCardInitializers=new Map();
+const outTp=document.getElementById('output_tp');
+const outSpar=document.getElementById('output_spar');
+function getContainerCards(){ return savingsLeftStack ? [...savingsLeftStack.querySelectorAll(':scope > section.card[data-order-id]')] : []; }
+function getVisibleCardIds(){ return getContainerCards().filter(card=>!card.hidden && card.getAttribute('data-card-disabled')!=='1').map(card=>card.dataset.orderId).filter(Boolean); }
+function getTpOutputText(){ const parts=[]; const text=(store.tp_new||'').trim(); if(text) parts.push(text); const extra=(store.tp_extra||'').trim(); if(extra) parts.push('KOMPLETTERANDE DOKUMENTATION\n'+extra); return parts.join('\n\n'); }
+function getSparOutputText(){ const parts=[]; getVisibleCardIds().forEach(function(k){ if(k==='tp_new') return; const t=(store[k]||'').trim(); if(t) parts.push(t); }); const extra=(store.ovrigt||'').trim(); if(extra) parts.push('KOMPLETTERANDE DOKUMENTATION\n'+extra); return parts.join('\n\n'); }
+function renderOut(){ const tp=getTpOutputText(), spar=getSparOutputText(); outTp.textContent=tp||'— tomt —'; outSpar.textContent=spar||'— tomt —'; }
+function setBlock(k,t){ if(!k) return; store[k]=(t||'').trim(); renderOut(); safeStorage.setItem('sparande.store.v1', JSON.stringify(store)); }
+function clearStorageNamespace(ns){ if(!ns || typeof safeStorage.key!=='function') return; try{ for(let i=safeStorage.length-1;i>=0;i--){ const key=safeStorage.key(i); if(key && key.indexOf(ns)===0) safeStorage.removeItem(key); } }catch(_){ } }
+function registerHybridCard(card, config){ if(!card || !card.dataset.orderId) return; hybridCardRegistry.set(card.dataset.orderId, Object.assign({ card:card }, config||{})); }
+function registerHybridInitializer(name, fn){ if(!name || typeof fn!=='function') return; hybridCardInitializers.set(name, fn); }
+function getHybridCardTitle(def){
+ const card=def&&def.card ? def.card : def;
+ const titleEl=card&&card.querySelector ? card.querySelector(':scope > header h2') : null;
+ return ((titleEl&&titleEl.textContent)||'kortet').trim();
+}
+function isHybridCardActive(def){
+ if(!def || typeof def.isActive!=='function') return false;
+ try{ return !!def.isActive(); }catch(_){ return false; }
+}
+function getExclusiveHybridBlockMessage(card, groupName){
+ if(!groupName) return '';
+ const currentId=card&&card.dataset ? (card.dataset.orderId||'') : '';
+ let blocker=null;
+ hybridCardRegistry.forEach((def,id)=>{
+  if(blocker || id===currentId) return;
+  if(def && def.exclusiveGroup===groupName && isHybridCardActive(def)) blocker=def;
+ });
+ if(!blocker) return '';
+ return 'Du har redan lagt till '+getHybridCardTitle(blocker)+'. Ta bort den först om du vill lägga till '+getHybridCardTitle(card)+'.';
+}
+function resetHybridCards(){ hybridCardRegistry.forEach(def=>{ if(def && typeof def.reset==='function'){ try{ def.reset(); }catch(_){ } } if(def && def.storageNamespace) clearStorageNamespace(def.storageNamespace); if(def && def.blockId) setBlock(def.blockId,''); }); }
+// fields/notes
+const taNotes=document.getElementById('free_notes');
+const taNotesTp=document.getElementById('free_notes_tp');
+
+function saveNotes(){ safeStorage.setItem('sparande.notes.v1', taNotes.value||''); }
+function loadNotes(){ taNotes.value = safeStorage.getItem('sparande.notes.v1') || ''; }
+function saveTpNotes(){ safeStorage.setItem('sparande.notes_tp.v1', taNotesTp.value||''); }
+function loadTpNotes(){ taNotesTp.value = safeStorage.getItem('sparande.notes_tp.v1') || ''; }
+
+// active buttons
+function saveActive(ids){ safeStorage.setItem('sparande.active.v1', JSON.stringify(ids||[])); }
+function loadActive(){ try{ return JSON.parse(safeStorage.getItem('sparande.active.v1')||'[]'); }catch(_){ return []; } }
+function persistActiveButtons(){ const ids=[...document.querySelectorAll('.btn.active')].filter(b=>!b.closest('section.card[data-card-kind="hybrid"]')).map(b=>b.id).filter(Boolean); saveActive(ids); }
+function setActiveInGroup(groupAttr, activeBtn){ const group = document.querySelector(`.btns[data-group="${groupAttr}"]`); if(!group) return; group.querySelectorAll('.btn').forEach(b=>{ b.classList.remove('active','btn-primary'); if(!b.classList.contains('btn-ghost')) b.classList.add('btn-ghost'); }); if(activeBtn){ activeBtn.classList.add('active','btn-primary'); activeBtn.classList.remove('btn-ghost'); } persistActiveButtons(); }
+function restoreActiveButtons(){ loadActive().forEach(id=>{ const b=document.getElementById(id); if(b && !b.closest('section.card[data-card-kind="hybrid"]')){ b.classList.add('active','btn-primary'); b.classList.remove('btn-ghost'); } }); }
+function setStandaloneButtonState(btn, on){ if(!btn) return; btn.classList.toggle('active', !!on); btn.classList.toggle('btn-primary', !!on); btn.classList.toggle('btn-ghost', !on); }
+// DOM refs
+const ppmGroup=document.querySelector('.btns[data-group="ppm"]');
+const buffGroup=document.querySelector('.btns[data-group="buff"]');
+const btnSchablonAdd=document.getElementById('btn_schablon_add');
+const selPlac=document.getElementById('tp_placeras');
+const selVC=document.getElementById('tp_valcentral');
+const warnTP=document.getElementById('tp_warn');
+const btnTPAdd=document.getElementById('btn_tp_add');
+const selFM=document.getElementById('fm_sandning');
+const warnFM=document.getElementById('fm_warn');
+const btnFMAdd=document.getElementById('btn_fm_add');
+const selU=document.getElementById('annat_urspr');
+const selT=document.getElementById('annat_tillagg');
+const warnA=document.getElementById('annat_warn');
+const btnAnnatAdd=document.getElementById('btn_annat_add');
+const btnGrpCopy=document.getElementById('btn_grp_copy');
+
+const awaitSaveAmount=document.getElementById('await_save_amount');
+const awaitSaveForm=document.getElementById('await_save_form');
+const awaitSaveReason=document.getElementById('await_save_reason');
+const btnAwaitSaveCopy=document.getElementById('btn_await_save_copy');
+function syncStandaloneButtons(){ [btnSchablonAdd, btnTPAdd, btnFMAdd, btnAnnatAdd].forEach(btn=>{ if(btn) setStandaloneButtonState(btn, btn.classList.contains('active')); }); }
+function clearTPState(){ if(selPlac) selPlac.value=''; if(selVC) selVC.value=''; if(warnTP) warnTP.style.display='none'; setBlock('tp',''); if(btnTPAdd) setStandaloneButtonState(btnTPAdd, false); persistActiveButtons(); }
+function clearFMState(){ if(selFM) selFM.value=''; if(warnFM) warnFM.style.display='none'; setBlock('fm',''); if(btnFMAdd) setStandaloneButtonState(btnFMAdd, false); persistActiveButtons(); }
+function clearAnnatState(){ if(selU) selU.value=''; if(selT) selT.value=''; if(warnA) warnA.style.display='none'; setBlock('annat',''); if(btnAnnatAdd) setStandaloneButtonState(btnAnnatAdd, false); persistActiveButtons(); }
+function clearNotesState(){ taNotes.value=''; taNotesTp.value=''; setBlock('ovrigt',''); setBlock('tp_extra',''); saveNotes(); saveTpNotes(); }
+
+function performFullReset(){
+ resetHybridCards();
+ Object.keys(store).forEach(k=>delete store[k]);
+ renderOut();
+ document.querySelectorAll('.btn.active').forEach(b=>b.classList.remove('active'));
+ document.querySelectorAll('.btns[data-group] .btn').forEach(b=>{ b.classList.remove('active','btn-primary'); b.classList.add('btn-ghost'); });
+ syncStandaloneButtons();
+ clearTPState();
+ clearFMState();
+ clearAnnatState();
+ if(typeof awaitSaveAmount !== 'undefined' && awaitSaveAmount) awaitSaveAmount.value='';
+ if(typeof awaitSaveForm !== 'undefined' && awaitSaveForm) awaitSaveForm.value='';
+ if(typeof awaitSaveReason !== 'undefined' && awaitSaveReason) awaitSaveReason.value='';
+ clearNotesState();
+ ['sparande.store.v1','sparande.notes.v1','sparande.notes_extra.v1','sparande.fields.v1','sparande.active.v1'].forEach(k=>safeStorage.removeItem(k));
+ showToast('Allt rensat.');
+}
+// PPM
+ppmGroup.querySelector('#btn_ppm_byter').addEventListener('click',function(){ if(this.classList.contains('active')){ setBlock('ppm',''); setActiveInGroup('ppm', null); showToast('PPM: Byter av'); return; } setBlock('ppm','Vi har loggat in på Pensionsmyndigheten och sett över din premiepension och beslutat att flytta över den till AP7 Såfa.'); setActiveInGroup('ppm', this); showToast('PPM: Byter'); });
+ppmGroup.querySelector('#btn_ppm_behaller').addEventListener('click',function(){ if(this.classList.contains('active')){ setBlock('ppm',''); setActiveInGroup('ppm', null); showToast('PPM: Behåller av'); return; } setBlock('ppm','Jag har rekommenderat att du behåller AP7 Såfa för din premiepension och gör därför inga förändringar under dagens möte.'); setActiveInGroup('ppm', this); showToast('PPM: Behåller'); });
+ppmGroup.querySelector('#btn_ppm_tackarnej').addEventListener('click',function(){ if(this.classList.contains('active')){ setBlock('ppm',''); setActiveInGroup('ppm', null); showToast('PPM: Tackar nej av'); return; } setBlock('ppm','Jag har rekommenderat dig att byta till AP7 Såfa. Du har valt att tacka nej till erbjudandet.'); setActiveInGroup('ppm', this); showToast('PPM: Tackar nej'); });
+// Schablonberäkning
+btnSchablonAdd.addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('schablon',''); setStandaloneButtonState(this, false); persistActiveButtons(); showToast('Schablontext borttagen.'); return; } setBlock('schablon', "Du har valt att inte logga in på minPension.se vid detta rådgivningstillfälle. Vi har därför inte haft möjlighet att hämta exakta uppgifter om dina intjänade pensioner.\nFör att kunna genomföra en översiktlig pensionsanalys har vi i stället använt schablonberäkningar baserade på din nuvarande lön, antagna intjänandeperioder och allmänna pensionsregler.\nAnalysen ger en uppskattad prognos och kan avvika från din faktiska pensionsbehållning. Jag rekommenderar verifiering via minPension.se för mer precisa uppgifter.\nDu har tagit del av och godkänt att rådgivningen baseras på schabloniserade antaganden."); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Schablontext tillagd.'); });
+// TP
+function validateTP(){ const a=selPlac.value.trim(), b=selVC.value.trim(); const ok=!!a && !!b; warnTP.style.display = ok ? 'none' : 'block'; return ok ? {a,b} : null; }
+function buildTP({a,b}){ return [ `Vi har idag pratat om din tjänstepension och du har gjort ett aktivt val som innebär att intjänat tjänstepensionskapital ska placeras hos ${a}`, `Under rådgivningen har du muntligen gett mig fullmakt att tillsammans med dig och i samförstånd logga in på din valcentral ${b} och genomfört ändringen och flytten.`, `(Signeringarna för detta gjordes med ditt bank-id under tiden vi delat skärm.)` ].join('\n'); }
+btnTPAdd.addEventListener('click', function(){ if(this.classList.contains('active')){ clearTPState(); showToast('Tjänstepension borttagen.'); return; } const v=validateTP(); if(!v) return; setBlock('tp', buildTP(v)); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Tjänstepension tillagd.'); });
+const UTFALL_MEDLEMSPAR_TEXT = 'MEDLEMSPAR\nDu har under vårt möte fått information om vilka olika sparandeprodukter med tillhörande medlemsförmåner som finns för våra kunder genom ditt medlemskap i fackförbund. Du valde att teckna sparande via rådgivning och personlig pensionsrådgivning.\n\nDu är informerad om att erbjudandet Medlemsspar bygger på ett medlemskap i förbund med avtal om denna avgiftsnivå. Avgiften kan komma att ändras vid ett utträde ur förbundet.';
+
+function initSparbeslutCard(card){
+ const blockKey=card.dataset.blockId||'sparbeslut', storageNs=card.dataset.storageNs||'sparande.hybrid.sparbeslut', stateKey=storageNs+'.state.v1';
+ const radios=[...card.querySelectorAll('input[name="sparbeslut_main"]')], panels=[...card.querySelectorAll('.sparbeslut-panel')], warn=card.querySelector('.warn');
+ const q=r=>card.querySelector('[data-role="'+r+'"]'), part=n=>card.querySelector('[data-part="'+n+'"]');
+ const f={annanEnabled:q('annan-enabled'),annanType:q('annan-type'),annanMonthly:q('annan-monthly'),annanLump:q('annan-lump'),annanReason:q('annan-reason'),annanFree:q('annan-free'),buffertStandard:q('buffert-standard'),buffertGoalEnabled:q('buffert-goal-enabled'),buffertMonths:q('buffert-months'),buffertMonthly:q('buffert-monthly'),buffertGoal:q('buffert-goal'),medlemsparEnabled:q('medlemspar-enabled'),avslutarDepaEnabled:q('avslutar-depa-enabled'),avvStandard:q('avv-standard'),avvMonthly:q('avv-monthly'),avvLump:q('avv-lump'),avvSparform:q('avv-sparform'),avvYears:q('avv-years'),avvGoal:q('avv-goal'),avvRepayment:q('avv-repayment'),avvReason:q('avv-reason'),avvFree:q('avv-free'),avradanReason:q('avradan-reason'),avradanAmount:q('avradan-amount'),avradanFree:q('avradan-free')};
+ const reasonText={storre_ekonomiskt_utrymme:'Orsaken är att du vill ha ett större ekonomiskt utrymme kvar varje månad.',se_over_ovrig_ekonomi:'Orsaken är att du först vill se över din övriga ekonomi innan du börjar spara.',ekonomin_forandras:'Orsaken är att din ekonomiska situation kommer att förändras inom kort.',annat_sparmal:'Orsaken är att du vill prioritera ett annat sparmål just nu.',jamfora_alternativ:'Orsaken är att du vill jämföra andra alternativ innan du bestämmer dig.',storre_trygghet:'Orsaken är att du vill spara mer än den rekommenderade nivån för att skapa större ekonomisk trygghet.',na_malet_snabbare:'Orsaken är att du vill spara mer än den rekommenderade nivån för att nå ditt sparmål snabbare.'};
+ function empty(){return {active:false,main:'',annan:{on:false,type:'',monthly:'',lump:'',reason:'',free:''},buffert:{on:false,mode:'utan',months:'',monthly:''},medlemspar:false,avslutarDepa:false,avv:{standard:'',monthly:'',lump:'',sparform:'',years:'',goal:'',repayment:'',reason:'',free:''},avradan:{reason:'',amount:'',free:''}}}
+ function norm(v){let e=empty(),n=v&&typeof v==='object'?v:{};return {active:!!n.active,main:['genomfors','avvaktar','avradan'].includes(n.main)?n.main:'',annan:Object.assign(e.annan,n.annan||{}),buffert:Object.assign(e.buffert,n.buffert||{}),medlemspar:!!n.medlemspar,avslutarDepa:!!n.avslutarDepa,avv:Object.assign(e.avv,n.avv||{}),avradan:Object.assign(e.avradan,n.avradan||{})}}
+ function load(){try{return norm(JSON.parse(safeStorage.getItem(stateKey)||'{}'))}catch(_){return empty()}} function save(v){safeStorage.setItem(stateKey,JSON.stringify(norm(v)))}
+ function sentence(v){v=String(v||'').trim();return v&&!/[.!?…]$/.test(v)?v+'.':v}
+ function read(active){f.avvGoal.value=calculateGoalAmount(f.avvYears.value,f.avvMonthly.value,f.avvLump.value,f.avvSparform.value);return norm({active:!!active,main:(radios.find(r=>r.checked)||{}).value||'',annan:{on:f.annanEnabled.checked,type:f.annanType.value,monthly:f.annanMonthly.value,lump:f.annanLump.value,reason:f.annanReason.value,free:f.annanFree.value},buffert:{on:f.buffertStandard.checked||f.buffertGoalEnabled.checked,mode:f.buffertGoalEnabled.checked?'konkret':'utan',months:f.buffertMonths.value,monthly:f.buffertMonthly.value},medlemspar:f.medlemsparEnabled.checked,avslutarDepa:f.avslutarDepaEnabled.checked,avv:{standard:f.avvStandard.value,monthly:f.avvMonthly.value,lump:f.avvLump.value,sparform:f.avvSparform.value,years:f.avvYears.value,goal:f.avvGoal.value,repayment:f.avvRepayment.value,reason:f.avvReason.value,free:f.avvFree.value},avradan:{reason:f.avradanReason.value,amount:f.avradanAmount.value,free:f.avradanFree.value}})}
+ function annanText(a){let c=[];if(Number(a.monthly)>0)c.push(a.type==='hojning'?'höja ditt befintliga månadssparande med '+a.monthly+' kr':'ett månadssparande på '+a.monthly+' kr');if(Number(a.lump)>0)c.push('en engångsinsättning på '+a.lump+' kr');if(!c.length)return '';let t='Du väljer idag '+(a.type==='hojning'?(c.length===2?'att '+c[0]+' och göra '+c[1]:'att '+c[0]):(c.length===2?'att starta '+c[0]+' och göra '+c[1]:(a.monthly?'att starta ':'att göra ')+c[0]))+'.';if(a.reason)t+=' '+reasonText[a.reason];if(a.free)t+=' '+sentence(a.free);return t}
+ function calculateGoalAmount(years,monthly,lump,savingsType){let y=Number(years),m=Number(monthly||0),l=Number(lump||0),r=savingsType==='Fond'?0.07:(savingsType==='Traditionellt'?0.04:0);if(!isFinite(y)||y<=0||!isFinite(m)||m<0||!isFinite(l)||l<0||!r)return '';let months=Math.round(y*12),mr=Math.pow(1+r,1/12)-1;return String(Math.round((l*Math.pow(1+mr,months)+m*((Math.pow(1+mr,months)-1)/mr))/100)*100)}
+ function fundingText(a){if(a.monthly&&a.lump)return 'genom ett månadssparande på '+a.monthly+' kr/mån samt en engångsinsättning på '+a.lump+' kr';if(a.monthly)return 'genom ett månadssparande på '+a.monthly+' kr/mån';if(a.lump)return 'genom en engångsinsättning på '+a.lump+' kr';return ''}
+ function avvGoalText(a){let form=a.sparform==='Fond'?'fondförvaltad':(a.sparform==='Traditionellt'?'traditionellt förvaltad':'');if(a.standard==='Pension')return 'Vi har i mötet genomfört en individuell behovsanalys, baserad på nuvarande pensionstillgångar, förväntade framtida premieinbetalningar samt individuella mål, där du har detaljerat ditt behov av framtida pension. Utkomsten av analysen är att du skulle behöva starta ett kompletterande sparande '+fundingText(a)+' till pension för att nå dina mål. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+form+' kapitalförsäkring, med en fondportfölj som är lämplig utifrån dina investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomiska situation.';if(a.standard==='Målspar')return 'Vi har i mötet genomfört en behovsanalys. Ett sparmål har satts upp med målbilden att om '+a.years+' år ha sparat ihop ett belopp på ca '+a.goal+' kronor, '+fundingText(a)+'. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+form+' kapitalförsäkring, med en portfölj som är lämplig utifrån investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomisk situation.';if(a.standard==='Tjänstepension'){let ater=a.repayment==='Med återbetalningsskydd'?'med återbetalningsskydd':(a.repayment==='Utan återbetalningsskydd'?'utan återbetalningsskydd':'');return 'Vi har i mötet genomfört en individuell behovsanalys, baserad på nuvarande pensionstillgångar, förväntade framtida premieinbetalningar samt individuella mål, där du har detaljerat ditt behov av framtida pension. Vi har tittat på den kollektivavtalade tjänstepensionen och du har önskat se över den och göra eventuella omval för framtida premier. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+form+' tjänstepension '+ater+', som är lämplig utifrån investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomisk situation. Jag har gett en instruktion för att kunna göra omval/flytt av din kollektivavtalade tjänstepension på din valcentral.'}return ''}
+ function avvText(a){let awaiting='AVVAKTAR MED SPARANDE\nDu väljer idag att avvakta med att starta ett sparande.';if(a.reason)awaiting+=' '+reasonText[a.reason];if(a.free)awaiting+=' '+sentence(a.free);return a.standard?avvGoalText(a)+'\n\n'+awaiting:awaiting}
+ function error(v){if(!v.main)return 'Välj Sparande genomförs, Avvaktar med sparande eller Avrådan.';if(v.main==='genomfors'){if(!v.annan.on&&!v.buffert.on&&!v.medlemspar&&!v.avslutarDepa)return 'Välj minst en del under Sparande genomförs.';if(v.annan.on&&!v.annan.type)return 'Välj Nyspar eller Höjning.';if(v.annan.on&&(!Number(v.annan.monthly)&&!Number(v.annan.lump)))return 'Fyll i månadssparande eller engångsinsättning.';if(v.annan.on&&!v.annan.reason&&!String(v.annan.free).trim())return 'Ange minst en orsak för Annan sparnivå.';if(v.buffert.on&&v.buffert.mode==='konkret'&&(!Number(v.buffert.months)||!Number(v.buffert.monthly)))return 'Fyll i tid och månadssparande för bufferten.'}if(v.main==='avradan'){if(!v.avradan.reason&&!String(v.avradan.free).trim())return 'Välj orsak till avrådan eller skriv en egen orsak.';if(v.avradan.reason==='begransad_buffert'&&!Number(v.avradan.amount))return 'Fyll i rekommenderat månadssparande.';}if(v.main==='avvaktar'){if(!v.avv.reason&&!String(v.avv.free).trim())return 'Ange minst en orsak.';if(v.avv.standard){if(!v.avv.sparform)return 'Välj Sparform.';if(v.avv.standard!=='Tjänstepension'&&!Number(v.avv.monthly)&&!Number(v.avv.lump))return 'Fyll i Månadsspar eller Insättning.';if(v.avv.standard==='Målspar'&&!Number(v.avv.years))return 'Fyll i Antal år.';if(v.avv.standard==='Målspar'&&!v.avv.goal)return 'Kontrollera Antal år, Månadsspar, Insättning och Sparform.';if(v.avv.standard==='Tjänstepension'&&!v.avv.repayment)return 'Välj Återbetalningsskydd.'}}return ''}
+ function build(v){if(!v.active||error(v))return '';if(v.main==='avradan'){let t='';if(v.avradan.reason==='begransad_buffert')t='Vi har gått igenom din ekonomiska situation och dina sparmål. För att nå dina mål bedöms ett sparande om '+v.avradan.amount+' kronor per månad vara lämpligt. Eftersom din ekonomiska buffert i dagsläget är begränsad rekommenderar vi att du i första hand prioriterar att bygga upp en buffert för oförutsedda utgifter. När bufferten har stärkts kan ett långsiktigt sparande bli aktuellt.';if(v.avradan.reason==='lan_hog_ranta')t='Vi har gått igenom din ekonomiska situation och dina sparmål. Eftersom du har ett större lån med hög ränta rekommenderar vi att du i första hand prioriterar att betala av lånet. När lånet har minskat och ditt ekonomiska utrymme har stärkts kan ett långsiktigt sparande bli aktuellt.';if(v.avradan.reason==='hog_kunskap')t='Vi har gått igenom din situation, dina mål och dina kunskaper inom pension och sparande. Du har mycket god kunskap och erfarenhet inom området och bedöms kunna fatta välgrundade beslut samt själv hantera din pension och ditt sparande. Mot den bakgrunden bedömer vi att du i dagsläget inte har behov av ytterligare rådgivning eller sparlösningar från oss.';let free=String(v.avradan.free||'').trim();if(free)t+=(t?' ':'')+free;return t?'AVRÅDAN\n'+t:'';}if(v.main==='avvaktar')return avvText(v.avv);let p=[];if(v.annan.on)p.push(annanText(v.annan));if(v.buffert.on){if(v.buffert.mode==='konkret'){let goal=Number(v.buffert.months)*Number(v.buffert.monthly);p.push('BEGRÄNSAD BUFFERT\nDu har i dag en begränsad buffert, men enligt den ekonomiska sammanställningen finns det utrymme att både börja spara långsiktigt och bygga upp bufferten. Jag har rekommenderat dig att bygga upp en buffert på '+goal+' kronor inom '+v.buffert.months+' månader genom att spara '+v.buffert.monthly+' kronor per månad på ett vanligt sparkonto eller ett olåst fasträntekonto.')}else{p.push('BEGRÄNSAD BUFFERT\nJag har rekommenderat dig att öka upp din buffert samtidigt som jag har rekommenderat att spara långsiktigt i en kapitalförsäkring. Enligt den ekonomiska sammanställningen finns utrymme till båda delarna.')}}if(v.medlemspar)p.push(UTFALL_MEDLEMSPAR_TEXT);if(v.avslutarDepa)p.push('SKATT VID AVSLUT AV DEPÅ\nJag har informerat dig om att en försäljning av tillgångar som finns på en depå kan utlösa kapitalvinstbeskattning på den eventuella vinst som ditt sparande på depån har inneburit. Om man till exempel gjort en nettovinst på sin depå på 10 000:- under ett beskattningsår så innebär det att man får betala 3000:- i skatt på den vinsten. Beskattningen sker året efter att man sålt tillgången och därför har jag rekommenderat dig att behålla den del som du kommer få betala skatt på i ett vanligt sparkonto.');return p.join('\n\n')}
+ function apply(v,show){v=norm(v);radios.forEach(r=>r.checked=r.value===v.main);panels.forEach(p=>p.hidden=p.dataset.panel!==v.main);f.annanEnabled.checked=!!v.annan.on;f.annanType.value=v.annan.type;f.annanMonthly.value=v.annan.monthly;f.annanLump.value=v.annan.lump;f.annanReason.value=v.annan.reason;f.annanFree.value=v.annan.free;f.buffertStandard.checked=!!v.buffert.on&&v.buffert.mode!=='konkret';f.buffertGoalEnabled.checked=!!v.buffert.on&&v.buffert.mode==='konkret';f.buffertMonths.value=v.buffert.months;f.buffertMonthly.value=v.buffert.monthly;f.buffertGoal.value=(Number(v.buffert.months)&&Number(v.buffert.monthly))?(Number(v.buffert.months)*Number(v.buffert.monthly))+' kr':'';f.medlemsparEnabled.checked=!!v.medlemspar;f.avslutarDepaEnabled.checked=!!v.avslutarDepa;f.avvStandard.value=v.avv.standard;f.avvMonthly.value=v.avv.monthly;f.avvLump.value=v.avv.lump;f.avvSparform.value=v.avv.sparform;f.avvYears.value=v.avv.years;f.avvGoal.value=v.avv.standard==='Målspar'?calculateGoalAmount(v.avv.years,v.avv.monthly,v.avv.lump,v.avv.sparform):'';v.avv.goal=f.avvGoal.value;f.avvRepayment.value=v.avv.repayment;f.avvReason.value=v.avv.reason;f.avvFree.value=v.avv.free;f.avradanReason.value=v.avradan.reason;f.avradanAmount.value=v.avradan.amount;f.avradanFree.value=v.avradan.free;card.querySelector('[data-role-wrap="avradan-amount"]').hidden=v.avradan.reason!=='begransad_buffert';part('avv-standard-fields').hidden=!v.avv.standard;let showMonthly=v.avv.standard==='Målspar'||v.avv.standard==='Pension',showLump=showMonthly,showSparform=!!v.avv.standard,showYears=v.avv.standard==='Målspar',showGoal=showYears,showRepayment=v.avv.standard==='Tjänstepension';card.querySelector('[data-role-wrap="avv-monthly"]').hidden=!showMonthly;card.querySelector('[data-role-wrap="avv-lump"]').hidden=!showLump;card.querySelector('[data-role-wrap="avv-sparform"]').hidden=!showSparform;card.querySelector('[data-role-wrap="avv-years"]').hidden=!showYears;card.querySelector('[data-role-wrap="avv-goal"]').hidden=!showGoal;card.querySelector('[data-role-wrap="avv-repayment"]').hidden=!showRepayment;part('annan').hidden=!v.annan.on;part('buffert-fields').hidden=!v.buffert.on||v.buffert.mode!=='konkret';let e=error(v);warn.textContent=e;warn.style.display=show&&e?'block':'none';v.active=!e;setBlock(blockKey,build(v))}
+ function reset(){let v=empty();save(v);apply(v,false)}
+ radios.forEach(r=>r.addEventListener('change',()=>{let v=empty();v.main=r.value;save(v);apply(v,false)}));card.querySelectorAll('input,select,textarea').forEach(el=>{if(el.name==='sparbeslut_main')return;['input','change'].forEach(ev=>el.addEventListener(ev,()=>{if(el===f.avradanReason&&el.value!=='begransad_buffert')f.avradanAmount.value='';if(el===f.buffertStandard&&f.buffertStandard.checked)f.buffertGoalEnabled.checked=false;if(el===f.buffertGoalEnabled&&f.buffertGoalEnabled.checked)f.buffertStandard.checked=false;if(el===f.avvStandard){if(el.value==='Tjänstepension'){f.avvMonthly.value='';f.avvLump.value='';f.avvYears.value='';f.avvGoal.value='';}else{f.avvRepayment.value='';if(el.value!=='Målspar'){f.avvYears.value='';f.avvGoal.value='';}}}let v=read(true);save(v);apply(v,false)}))});registerHybridCard(card,{blockId:blockKey,storageNamespace:storageNs,reset:reset});apply(load(),false);sync()
+}
+
+function initTpNewCard(card){
+ const cardId=card.dataset.orderId||'tp_new', blockKey=card.dataset.blockId||cardId, storageNs=card.dataset.storageNs||('sparande.hybrid.'+cardId), stateKey=storageNs+'.state.v2';
+ const rows=[...card.querySelectorAll('.tp-new-area')], shared=card.querySelector('[data-role="shared"]'), radios=[...card.querySelectorAll('input[name="tp_new_main"]')], areasPart=card.querySelector('[data-part="tp-areas"]'), awaitPart=card.querySelector('[data-part="tp-await"]'), awaitFields=card.querySelector('[data-part="tp-await-standard-fields"]'), standard=card.querySelector('[data-role="tp-await-standard"]'), sparform=card.querySelector('[data-role="tp-await-sparform"]'), repayment=card.querySelector('[data-role="tp-await-repayment"]'), reason=card.querySelector('[data-role="tp-await-reason"]'), free=card.querySelector('[data-role="tp-await-free"]'), warn=card.querySelector('.warn');
+ const config={saflo:{name:'SAF-LO',vc:'Fora'},akap:{name:'AKAP-KR/KAP-KL'},pa16:{name:'PA16',vc:'SPV'},itp:{name:'ITP',vc:'Avtalat'},other:{}};
+ const pa16SpecialText='PA-16 - SÄRSKILD INFORMATION\nJag har idag informerat dig om att pensionsprognosen har presenterats utifrån ett jämförbart avtalsområde som i stora delar motsvarar PA16. Detta har inte påverkat den rekommendation som vi har lämnat till dig.\n\nPå grund av en tillfällig systembegränsning kommer de dokument som genereras automatiskt att innehålla hänvisningar till AKAP-KR eller KAP-KL. För att säkerställa att du får korrekt information kommer vi därför också att göra relevant förköpsinformation för PA16 samt en checklista för hur du själv genomför flytten eller omvalet enligt PA16 tillgänglig på Mina sidor.';  
+ if(!rows.length||!shared||!warn) return;
+ function refs(row){ return {enabled:row.querySelector('[data-role="enabled"]'),product:row.querySelector('[data-role="product"]'),valcentral:row.querySelector('[data-role="valcentral"]'),customArea:row.querySelector('[data-role="custom-area"]'),customValcentral:row.querySelector('[data-role="custom-valcentral"]'),omval:row.querySelector('[data-role="omval"]'),flytt:row.querySelector('[data-role="flytt"]'),requested:row.querySelector('[data-role="requested"]'),received:row.querySelector('[data-role="received"]')}; }
+ function details(key,v){ const c=config[key], name=key==='other'?v.customArea:c.name, vc=key==='other'?v.customValcentral:(c.vc||v.valcentral), form=v.product==='Folksam Tjänstepension'?'traditionellt förvaltad':'fondförvaltad'; return {name:name,vc:vc,form:form}; }
+ function areaError(key,v){ const d=details(key,v); if(!d.name) return 'Ange avtalsområde för Övriga.'; if(!d.vc) return 'Ange eller välj valcentral för '+(d.name||'Övriga')+'.'; if(!v.product) return 'Välj försäkring för '+(d.name||'Övriga')+'.'; if(!v.omval&&!v.flytt&&!v.requested&&!v.received) return 'Välj minst ett utfall för '+(d.name||'Övriga')+'.'; return ''; }
+ function omvalText(d,withIntro){ return (withIntro?'Vi har idag pratat om din tjänstepension och du':'Du')+' har gjort ett omval inom ditt avtalsområde '+d.name+' som innebär att framtida premier ska placeras i en '+d.form+' tjänstepensionsförsäkring hos Folksam. Omvalet avseende kommande premier har du gjort via din valcentral '+d.vc+' i rådgivningsmötet.'; }
+ function flyttText(d,withIntro){ return (withIntro?'Vi har idag pratat om din tjänstepension och jag':'Jag')+' har rekommenderat att ditt tidigare intjänade tjänstepensionskapital inom ditt avtalsområde '+d.name+' flyttas till en '+d.form+' tjänstepensionsförsäkring hos Folksam. Flytten avseende inbetalda premier har du gjort via din valcentral '+d.vc+' i rådgivningsmötet.\n\nJag bedömer att flytten är lämplig utifrån bland annat avgifter, placeringsmöjligheter, riskskydd, övriga villkor och dina behov. En samlad pension hos Folksam ger bättre överblick och enklare administration samt kan underlätta uppföljning av placeringar, avgifter och framtida utbetalningar.\n\nDu har därefter gjort ett aktivt val att flytta ditt intjänade tjänstepensionskapital. Jag har informerat om att flyttavgifter kan förekomma och att information om dessa, samt jämförelser av avgifter, villkor och avkastning, finns på valcentralens webbplats.'; }
+ function receivedText(d){ return 'Jag har vid tidigare rådgivningsmöte rekommenderat dig att flytta ditt tidigare intjänade tjänstepensionskapital inom '+d.name+' till en '+d.form+' tjänstepensionsförsäkring i Folksam och du har valt att du vill flytta. Jag har därför idag hjälpt dig att genomföra flytten. Flytten har du gjort via din valcentral i rådgivningsmötet.\n\n'+flyttText(d,false); }
+ function requestedText(d){ return 'För att få en fullständig överblick har vi tillsammans beställt en sammanställning från din valcentral '+d.vc+' som beräknas vara klar inom några dagar. Vi erbjuder ett uppföljande rådgivningsmöte för genomgång av underlaget och stöd i flyttprocessen. Vi ber dig återkoppla när flytten har genomförts. Om du behöver stöd eller vägledning för att komma vidare är det viktigt att du meddelar detta.'; }
+ function refs(row){return {enabled:row.querySelector('[data-role="enabled"]'),product:row.querySelector('[data-role="product"]'),valcentral:row.querySelector('[data-role="valcentral"]'),customArea:row.querySelector('[data-role="custom-area"]'),customValcentral:row.querySelector('[data-role="custom-valcentral"]'),omval:row.querySelector('[data-role="omval"]'),flytt:row.querySelector('[data-role="flytt"]'),requested:row.querySelector('[data-role="requested"]'),received:row.querySelector('[data-role="received"]')}}
+ function empty(){return {active:false,shared:false,main:'',await:{standard:'',sparform:'',repayment:'',reason:'',free:''},areas:{}}}
+ function norm(v){let e=empty(),n=v&&typeof v==='object'?v:{};return {active:!!n.active,shared:!!n.shared,main:['changes','await','none'].includes(n.main)?n.main:'',await:Object.assign(e.await,n.await||{}),areas:n.areas||{}}}
+ function load(){try{return norm(JSON.parse(safeStorage.getItem(stateKey)||'{}'))}catch(_){return empty()}} function save(v){safeStorage.setItem(stateKey,JSON.stringify(norm(v)))}
+ function read(active){const areas={};rows.forEach(row=>{const r=refs(row),k=row.dataset.area;areas[k]={enabled:!!r.enabled.checked,product:r.product?r.product.value:'',valcentral:r.valcentral?r.valcentral.value:'',customArea:r.customArea?r.customArea.value.trim():'',customValcentral:r.customValcentral?r.customValcentral.value.trim():'',omval:!!(r.omval&&r.omval.checked),flytt:!!(r.flytt&&r.flytt.checked),requested:!!(r.requested&&r.requested.checked),received:!!(r.received&&r.received.checked)}});return norm({active,shared:shared.checked,main:(radios.find(r=>r.checked)||{}).value||'',await:{standard:standard.value,sparform:sparform.value,repayment:repayment.value,reason:reason.value,free:free.value},areas})}
+ function error(v){if(!v.main)return 'Välj ett alternativ för Tjänstepension.';if(v.main==='changes'){let selected=Object.keys(v.areas).filter(k=>v.areas[k].enabled);if(!selected.length)return 'Välj minst ett avtalsområde.';for(const k of selected){let e=areaError(k,v.areas[k]);if(e)return e}}if(v.main==='await'){if(!v.await.reason&&!String(v.await.free).trim())return 'Ange minst en orsak.';if(v.await.standard==='Tjänstepension'&&!v.await.sparform)return 'Välj Sparform.';if(v.await.standard==='Tjänstepension'&&!v.await.repayment)return 'Välj Återbetalningsskydd.'}return ''}
+ function awaitText(a){const reasons={vill_fundera:'Orsaken är att du vill fundera innan du fattar beslut om att flytta din tjänstepension.',jamfora_alternativen:'Orsaken är att du vill jämföra alternativen innan du bestämmer dig.',radgora_annan:'Orsaken är att du vill rådgöra med någon annan innan du fattar beslut.',nojd_nuvarande:'Orsaken är att du är nöjd med din nuvarande lösning.'};let t='';if(a.standard==='Tjänstepension'){let form=a.sparform==='Fond'?'fondförvaltad':'traditionellt förvaltad',ater=a.repayment==='Med återbetalningsskydd'?'med återbetalningsskydd':'utan återbetalningsskydd';t='Vi har i mötet genomfört en individuell behovsanalys, baserad på nuvarande pensionstillgångar, förväntade framtida premieinbetalningar samt individuella mål, där du har detaljerat ditt behov av framtida pension. Vi har tittat på den kollektivavtalade tjänstepensionen och du har önskat se över den och göra eventuella omval för framtida premier. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+form+' tjänstepension '+ater+', som är lämplig utifrån investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomisk situation. Jag har gett en instruktion för att kunna göra omval/flytt av din kollektivavtalade tjänstepension på din valcentral.\n\n'}t+='AVVAKTAR MED BESLUT\nDu väljer idag att avvakta med beslut om din tjänstepension.';if(a.reason)t+=' '+reasons[a.reason];if(a.free)t+=' '+String(a.free).trim();return t}
+ function build(v){let parts=[];if(v.shared)parts.push('EGEN INLOGGNING OCH MUNTLIG FULLMAKT\nUnder rådgivningen loggade du själv in på din valcentral med dina personliga inloggningsuppgifter. Efter att du lämnat en muntlig fullmakt bistod jag dig, i samförstånd med dig, vid genomförandet av dina val på valcentralen medan vi delade skärm.');if(!v.main)return parts.join('\n\n');if(v.main==='none'){parts.push('TJÄNSTEPENSION\nVi har gått igenom din tjänstepension och bedömer att den nuvarande utformningen fungerar väl utifrån dina mål och förutsättningar. Ingen förändring bedöms vara nödvändig i dagsläget.');return parts.join('\n\n')}if(v.main==='await'){if(error(v))return parts.join('\n\n');parts.push(awaitText(v.await));return parts.join('\n\n')}let introUsed=false;['saflo','akap','pa16','itp','other'].forEach(k=>{let x=v.areas[k];if(!x||!x.enabled||areaError(k,x))return;let d=details(k,x),ap=[];if(x.received)ap.push(receivedText(d));if(x.omval){ap.push(omvalText(d,!introUsed));if(k==='pa16')ap.push(pa16SpecialText);introUsed=true}if(x.flytt){ap.push(flyttText(d,!introUsed&&!x.received));if(!x.received)introUsed=true}if(x.requested)ap.push(requestedText(d));if(ap.length)parts.push(d.name.toLocaleUpperCase('sv-SE')+'\n'+ap.join('\n\n'))});return parts.join('\n\n')}
+ function apply(v,show){v=norm(v);shared.checked=v.shared;radios.forEach(r=>r.checked=r.value===v.main);areasPart.hidden=v.main!=='changes';awaitPart.hidden=v.main!=='await';awaitFields.hidden=v.main!=='await'||v.await.standard!=='Tjänstepension';standard.value=v.await.standard;sparform.value=v.await.sparform;repayment.value=v.await.repayment;reason.value=v.await.reason;free.value=v.await.free;rows.forEach(row=>{let r=refs(row),x=v.areas[row.dataset.area]||{};r.enabled.checked=!!x.enabled;row.classList.toggle('is-enabled',!!x.enabled);if(r.product)r.product.value=r.product.disabled?r.product.value:(x.product||'');if(r.valcentral)r.valcentral.value=x.valcentral||'';if(r.customArea)r.customArea.value=x.customArea||'';if(r.customValcentral)r.customValcentral.value=x.customValcentral||'';if(r.omval)r.omval.checked=!!x.omval;if(r.flytt)r.flytt.checked=!!x.flytt;if(r.requested)r.requested.checked=!!x.requested;if(r.received)r.received.checked=!!x.received});let e=error(v);warn.textContent=e;warn.style.display=show&&e?'block':'none';v.active=!e;setBlock(blockKey,build(v))}
+ function sync(){let v=read(true);save(v);apply(v,false)} function reset(){let v=empty();save(v);apply(v,false)}
+ radios.forEach(r=>r.addEventListener('change',()=>{let v=empty();v.active=true;v.shared=shared.checked;v.main=r.value;save(v);apply(v,false)}));[shared,standard,sparform,repayment,reason,free].forEach(el=>['input','change'].forEach(ev=>el.addEventListener(ev,sync)));rows.forEach(row=>{let r=refs(row);function resetAreaIfNoOutcome(){if([r.omval,r.flytt,r.requested,r.received].filter(Boolean).some(el=>el.checked))return;if(r.enabled)r.enabled.checked=false;if(r.product&&!r.product.disabled)r.product.value='';if(r.valcentral)r.valcentral.value='';if(r.customArea)r.customArea.value='';if(r.customValcentral)r.customValcentral.value=''}row.querySelectorAll('input,select').forEach(el=>['input','change'].forEach(ev=>el.addEventListener(ev,sync)));if(r.received)r.received.addEventListener('change',()=>{if(r.received.checked){if(r.omval)r.omval.checked=false;if(r.requested)r.requested.checked=false}else resetAreaIfNoOutcome();sync()});[r.omval,r.requested].filter(Boolean).forEach(el=>el.addEventListener('change',()=>{if(el.checked&&r.received)r.received.checked=false;else if(!el.checked)resetAreaIfNoOutcome();sync()}));if(r.flytt)r.flytt.addEventListener('change',()=>{if(!r.flytt.checked)resetAreaIfNoOutcome();sync()})});registerHybridCard(card,{blockId:blockKey,storageNamespace:storageNs,reset:reset});apply(load(),false);sync()
+}
+function initRiskCard(card){
+ const storageNs=card.dataset.storageNs||'sparande.hybrid.risk',stateKey=storageNs+'.state.v1';
+ const initial=card.querySelector('[data-role="risk-initial"]'),recommendation=card.querySelector('[data-role="risk-recommendation"]'),warn=card.querySelector('.warn'),button=card.querySelector('.btns .btn');
+ if(!initial||!recommendation||!warn||!button)return;
+ function level(v){return ({'låg risk':1,'medelrisk':2,'hög risk':3})[v]||0}
+ function norm(v){v=v&&typeof v==='object'?v:{};return {initial:String(v.initial||''),recommendation:String(v.recommendation||'')}}
+ function load(){try{return norm(JSON.parse(safeStorage.getItem(stateKey)||'{}'))}catch(_){return norm({})}}
+ function save(v){safeStorage.setItem(stateKey,JSON.stringify(norm(v)))}
+ function error(v){if(!v.initial||!v.recommendation)return 'Välj både Utgångsläge och Rekommendation.';if(level(v.recommendation)<=level(v.initial))return 'Rekommendation måste vara högre risk än Utgångsläge.';return ''}
+ function build(v){return 'Utifrån din riskvilja, kunskap, erfarenhet och ekonomiska situation så rekommenderades du i utgångsläget '+v.initial+'. Med tanke på din långa sparhorisont så rekommenderar jag som rådgivare i stället att du väljer '+v.recommendation+'. Du väljer enligt mitt förslag.'}
+ function read(){return norm({initial:initial.value,recommendation:recommendation.value})}
+ function apply(v,show){v=norm(v);let e=error(v);initial.value=v.initial;recommendation.value=v.recommendation;warn.textContent=e||'Välj både Utgångsläge och Rekommendation.';warn.style.display=show&&e?'block':'none'}
+ function sync(){let next=read();save(next);apply(next,false)}
+ function reset(){let next=norm({});save(next);apply(next,false)}
+ ['input','change'].forEach(function(ev){initial.addEventListener(ev,sync);recommendation.addEventListener(ev,sync)});
+ button.addEventListener('click',async function(){let next=read(),e=error(next);save(next);if(e){apply(next,true);return}apply(next,false);let text=build(next);try{await navigator.clipboard.writeText(text)}catch(_){let ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(__){}document.body.removeChild(ta)}showToast('Risktext kopierad')});
+ registerHybridCard(card,{storageNamespace:storageNs,reset:reset});apply(load(),false)
+}
+function initUtfallCard(card){
+ const cardId=card.dataset.orderId||'hybrid_card';
+ const blockKey=card.dataset.blockId||cardId;
+ const storageNs=card.dataset.storageNs||'sparande.hybrid.utfall';
+ const stateKey=storageNs+'.state.v1';
+ const cardTitle=((card.querySelector(':scope > header h2')||{}).textContent||'Medlemspar').trim();
+ const btnMedlemspar=card.querySelector('#btn_utfall_medlemspar');
+ if(!btnMedlemspar) return;
+ function normalizeState(data){
+  const selected=(data && data.selected==='medlemspar') ? 'medlemspar' : '';
+  return { selected:selected };
+ }
+ function loadState(){
+  try{ return normalizeState(JSON.parse(safeStorage.getItem(stateKey)||'{}')); }catch(_){ return { selected:'' }; }
+ }
+ function saveState(state){
+  safeStorage.setItem(stateKey, JSON.stringify(normalizeState(state||{})));
+ }
+ function buildText(selectedId){
+  return selectedId==='medlemspar' ? UTFALL_MEDLEMSPAR_TEXT : '';
+ }
+ function applyState(state){
+  const normalized=normalizeState(state);
+  setStandaloneButtonState(btnMedlemspar, normalized.selected==='medlemspar');
+  setBlock(blockKey, buildText(normalized.selected));
+ }
+ function resetCard(){
+  const next={ selected:'' };
+  saveState(next);
+  applyState(next);
+ }
+ btnMedlemspar.addEventListener('click', function(){
+  const current=loadState();
+  const willActivate=current.selected!=='medlemspar';
+  const next={ selected: willActivate ? 'medlemspar' : '' };
+  saveState(next);
+  applyState(next);
+  showToast(cardTitle+': '+(willActivate ? 'tillagd' : 'borttagen'));
+ });
+ registerHybridCard(card, { blockId:blockKey, storageNamespace:storageNs, reset:resetCard });
+ applyState(loadState());
+}
+function initAnnatMalEnkelCard(card){
+ const storageNs=card.dataset.storageNs||'sparande.hybrid.annatmal.enkel';
+ const stateKey=storageNs+'.state.v1';
+ const selU=card.querySelector('#annat_mal_urspr');
+ const selT=card.querySelector('#annat_mal_tillagg');
+ const warn=card.querySelector('#annat_mal_warn');
+ const btn=card.querySelector('#btn_annat_mal_add');
+ if(!selU||!selT||!warn||!btn) return;
+ function norm(data){var n=data&&typeof data==='object'?data:{};return {urspr:typeof n.urspr==='string'?n.urspr:'',tillagg:typeof n.tillagg==='string'?n.tillagg:''};}
+ function load(){try{return norm(JSON.parse(safeStorage.getItem(stateKey)||'{}'));}catch(_){return norm({});}}
+ function save(state){safeStorage.setItem(stateKey,JSON.stringify(norm(state)));}
+ function malText(value){if(value==='Pension')return 'pensionsspar';if(value==='Målspar')return 'målspar';if(value==='Tjänstepension')return 'tjänstepension';if(value==='Livförsäkring')return 'livförsäkring';return String(value||'').toLowerCase();}
+ function error(state){if(!state.urspr||!state.tillagg)return 'Välj Ursprungsmål och Tilläggsmål.';if(state.urspr===state.tillagg)return 'Ursprungsmål och Tilläggsmål kan inte vara samma.';return '';}
+ function text(state){if(error(state))return '';var u=malText(state.urspr),t=malText(state.tillagg);return String(state.tillagg||'').toLocaleUpperCase('sv-SE')+'\n'+(state.tillagg==='Tjänstepension'?'Inledningsvis var tanken enbart att se över '+u+' men under rådgivningens gång ville du även se över din tjänstepension.':'Inledningsvis var tanken enbart att se över '+u+' men under rådgivningens gång ville du även starta ett '+t+'.');}
+ function apply(state,showWarn){var n=norm(state),e=error(n);selU.value=n.urspr;selT.value=n.tillagg;warn.textContent=e||'Välj Ursprungsmål och Tilläggsmål.';warn.style.display=showWarn&&e?'block':'none';}
+ function read(){return norm({urspr:selU.value,tillagg:selT.value});}
+ function sync(){var n=read();save(n);apply(n,false);}
+ ['input','change'].forEach(function(ev){selU.addEventListener(ev,sync);selT.addEventListener(ev,sync);});
+ btn.addEventListener('click',async function(){var n=read(),e=error(n);save(n);if(e){apply(n,true);return;}apply(n,false);var built=text(n);try{await navigator.clipboard.writeText(built);}catch(_){var ta=document.createElement('textarea');ta.value=built;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(__){}document.body.removeChild(ta);}showToast('Annat mål kopierat');});
+ function reset(){var n=norm({});save(n);apply(n,false);}
+ registerHybridCard(card,{storageNamespace:storageNs,reset:reset});apply(load(),false);
+}
+function initAnnatMalCard(card){
+ const cardId=card.dataset.orderId||'annat';
+ const blockKey=cardId;
+ const storageNs=card.dataset.storageNs||'sparande.hybrid.annatmal';
+ const stateKey=storageNs+'.state.v1';
+ const selStandard=card.querySelector('#annat_h_standard');
+ const inputBehov=card.querySelector('#annat_h_behov');
+ const inputInsattning=card.querySelector('#annat_h_insattning');
+ const selSparform=card.querySelector('#annat_h_sparform');
+ const gridMid=card.querySelector('.annatm-grid-mid');
+ const livTextWrap=card.querySelector('.annatm-liv-text');
+ const livText=card.querySelector('#annat_h_liv_text');
+ const behovWrap=card.querySelector('.annatm-behov');
+ const ctx1Wrap=card.querySelector('.annatm-context1');
+ const ctx2Wrap=card.querySelector('.annatm-context2');
+ const ctx1Label=card.querySelector('#annat_h_ctx1_label');
+ const ctx2Label=card.querySelector('#annat_h_ctx2_label');
+ const ctx1Input=card.querySelector('#annat_h_ctx1_input');
+ const ctx1Select=card.querySelector('#annat_h_ctx1_select');
+ const ctx2Input=card.querySelector('#annat_h_ctx2_input');
+ const warn=card.querySelector('#annat_h_warn');
+ const btnAdd=card.querySelector('#btn_annat_h_add');
+ const detailsWrap=card.querySelector('.annatm-avvaktar-details');
+ const reasonSelect=card.querySelector('#annat_h_reason');
+ const reasonFree=card.querySelector('#annat_h_reason_free');
+ if(!selStandard || !detailsWrap || !reasonSelect || !reasonFree || !inputBehov || !inputInsattning || !selSparform || !gridMid || !livTextWrap || !livText || !behovWrap || !ctx1Wrap || !ctx2Wrap || !ctx1Label || !ctx2Label || !ctx1Input || !ctx1Select || !ctx2Input || !warn || !btnAdd) return;
+ const reasonOptions=[
+  {value:'storre_ekonomiskt_utrymme',label:'Större ekonomiskt utrymme',text:'Orsaken är att du vill behålla ett större löpande utrymme i din ekonomi.'},
+  {value:'se_over_ovrig_ekonomi',label:'Övrig ekonomi behöver ses över',text:'Orsaken är att du först vill se över din övriga ekonomi.'},
+  {value:'ekonomin_forandras',label:'Ekonomin förändras inom kort',text:'Orsaken är att din ekonomi kommer att förändras inom kort.'},
+  {value:'annat_sparmal',label:'Annat sparmål prioriteras',text:'Orsaken är att du prioriterar ett annat sparmål just nu.'},
+  {value:'jamfora_alternativ',label:'Vill jämföra alternativ',text:'Orsaken är att du vill jämföra olika alternativ innan du bestämmer dig.'}
+ ];
+ const reasonMap=new Map(reasonOptions.map(function(option){return [option.value,option];}));
+ reasonOptions.forEach(function(option){var el=document.createElement('option');el.value=option.value;el.textContent=option.label;reasonSelect.appendChild(el);});
+ function ensureSentence(value){var text=String(value||'').trim();if(!text)return '';return /[.!?…]$/.test(text)?text:text+'.';}
+ function digits(value){ return String(value||'').replace(/\D+/g,''); }
+ function calculateGoalAmount(years, monthly, lump, savingsType){
+  var yearCount=Number(years), monthlyAmount=Number(monthly||0), lumpAmount=Number(lump||0);
+  var annualRate=savingsType==='Fond' ? 0.07 : (savingsType==='Traditionellt' ? 0.04 : 0);
+  if(!isFinite(yearCount) || yearCount<=0 || !isFinite(monthlyAmount) || monthlyAmount<0 || !isFinite(lumpAmount) || lumpAmount<0 || !annualRate) return '';
+  var months=Math.round(yearCount*12), monthlyRate=Math.pow(1+annualRate,1/12)-1;
+  return String(Math.round((lumpAmount*Math.pow(1+monthlyRate,months) + monthlyAmount*((Math.pow(1+monthlyRate,months)-1)/monthlyRate))/100)*100);
+ }
+ function normalizeState(data){
+  var next=data&&typeof data==='object' ? data : {};
+  var state={
+   tillagg: typeof next.tillagg==='string' ? next.tillagg : '',
+   behov: digits(next.behov),
+   insattning: digits(next.insattning),
+   sparform: typeof next.sparform==='string' ? next.sparform : '',
+   antalAr: digits(next.antalAr),
+   malbelopp: digits(next.malbelopp),
+   aterbetalningsskydd: typeof next.aterbetalningsskydd==='string' ? next.aterbetalningsskydd : '',
+   livText: typeof next.livText==='string' ? next.livText : '',
+   reason: next.reason&&reasonMap.has(next.reason) ? next.reason : '',
+   reasonFree: typeof next.reasonFree==='string' ? next.reasonFree : '',
+   active: !!next.active
+  };
+  if(state.tillagg!=='Målspar'){
+   state.antalAr='';
+   state.malbelopp='';
+  }
+  if(state.tillagg!=='Tjänstepension') state.aterbetalningsskydd='';
+  if(state.tillagg==='Tjänstepension' || state.tillagg==='Livförsäkring'){ state.behov=''; state.insattning=''; }
+  if(state.tillagg==='Livförsäkring') state.sparform='';
+  if(state.tillagg==='Målspar') state.malbelopp=calculateGoalAmount(state.antalAr,state.behov,state.insattning,state.sparform);
+  return state;
+ }
+ function loadState(){
+  try{ return normalizeState(JSON.parse(safeStorage.getItem(stateKey)||'{}')); }catch(_){ return normalizeState({}); }
+ }
+ function saveState(state){
+  try{ safeStorage.setItem(stateKey, JSON.stringify(normalizeState(state||{}))); }catch(_){ }
+ }
+ function kapitalforsakringText(value){ return value==='Fond' ? 'fondförvaltad kapitalförsäkring' : (value==='Traditionellt' ? 'traditionellt förvaltad kapitalförsäkring' : ''); }
+ function tjanstepensionText(value){ return value==='Fond' ? 'fondförvaltad tjänstepension' : (value==='Traditionellt' ? 'traditionellt förvaltad tjänstepension' : ''); }
+ function aterText(value){ return value==='Med återbetalningsskydd' ? 'med återbetalningsskydd' : (value==='Utan återbetalningsskydd' ? 'utan återbetalningsskydd' : ''); }
+ function buildGoalText(state){
+  function malText(value){
+   if(value==='Pension') return 'pensionsspar';
+   if(value==='Målspar') return 'målspar';
+   if(value==='Tjänstepension') return 'tjänstepension';
+   if(value==='Livförsäkring') return 'livförsäkring';
+   return String(value||'').toLowerCase();
+  }
+  function fundingText(state){
+   var monthly=state&&state.behov ? state.behov : '';
+   var lump=state&&state.insattning ? state.insattning : '';
+   if(monthly && lump) return 'genom ett månadssparande på '+monthly+' kr/mån samt en engångsinsättning på '+lump+' kr';
+   if(monthly) return 'genom ett månadssparande på '+monthly+' kr/mån';
+   if(lump) return 'genom en engångsinsättning på '+lump+' kr';
+   return '';
+  }
+  var ursprText=malText(state.urspr);
+  var tillaggText=malText(state.tillagg);
+  var intro = state.tillagg==='Tjänstepension'
+   ? 'Inledningsvis var tanken enbart att se över '+ursprText+' men under rådgivningens gång ville du även se över din tjänstepension.'
+   : 'Inledningsvis var tanken enbart att se över '+ursprText+' men under rådgivningens gång ville du även starta ett '+tillaggText+'.';
+  if(state.tillagg==='Pension'){
+   return 'Vi har i mötet genomfört en individuell behovsanalys, baserad på nuvarande pensionstillgångar, förväntade framtida premieinbetalningar samt individuella mål, där du har detaljerat ditt behov av framtida pension. Utkomsten av analysen är att du skulle behöva starta ett kompletterande sparande '+fundingText(state)+' till pension för att nå dina mål. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+kapitalforsakringText(state.sparform)+', med en fondportfölj som är lämplig utifrån dina investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomiska situation.';
+  }
+  if(state.tillagg==='Målspar'){
+   return 'Vi har i mötet genomfört en behovsanalys. Ett sparmål har satts upp med målbilden att om '+state.antalAr+' år ha sparat ihop ett belopp på ca '+state.malbelopp+' kronor, '+fundingText(state)+'. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+kapitalforsakringText(state.sparform)+', med en portfölj som är lämplig utifrån investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomisk situation.';
+  }
+  if(state.tillagg==='Livförsäkring'){
+   return state.livText.trim();
+  }
+  if(state.tillagg==='Tjänstepension'){
+   return 'Vi har i mötet genomfört en individuell behovsanalys, baserad på nuvarande pensionstillgångar, förväntade framtida premieinbetalningar samt individuella mål, där du har detaljerat ditt behov av framtida pension. Vi har tittat på den kollektivavtalade tjänstepensionen och du har önskat se över den och göra eventuella omval för framtida premier. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+tjanstepensionText(state.sparform)+' '+aterText(state.aterbetalningsskydd)+', som är lämplig utifrån investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomisk situation. Jag har gett en instruktion för att kunna göra omval/flytt av din kollektivavtalade tjänstepension på din valcentral.';
+  }
+  return '';
+ }
+ function buildText(state){
+  var selected=state.reason?reasonMap.get(state.reason):null;
+  var free=ensureSentence(state.reasonFree);
+  var awaiting='AVVAKTAR MED SPARANDE\nDu väljer idag att avvakta med att starta ett sparande.';
+  if(selected) awaiting+=' '+selected.text;
+  if(free) awaiting+=' '+free;
+  return state.tillagg ? buildGoalText(state)+'\n\n'+awaiting : awaiting;
+ }
+ function setWarn(html){ warn.innerHTML=html||''; warn.style.display=html ? 'block' : 'none'; }
+ function setEmptyContext(){
+  gridMid.classList.remove('tp-mode');
+  ctx1Wrap.classList.add('is-empty');
+  ctx2Wrap.classList.add('is-empty');
+  ctx1Wrap.classList.remove('use-select');
+  ctx2Wrap.classList.remove('use-select');
+  ctx1Wrap.classList.add('use-input');
+  ctx2Wrap.classList.add('use-input');
+  ctx1Label.innerHTML='&nbsp;';
+  ctx2Label.innerHTML='&nbsp;';
+  ctx1Input.value='';
+  ctx2Input.value='';
+  ctx1Select.value='';
+  ctx1Input.placeholder='';
+  ctx2Input.placeholder='';
+ }
+ function applyContext(state){
+  setEmptyContext();
+  if(state.tillagg==='Tjänstepension') gridMid.classList.add('tp-mode');
+  gridMid.style.display=state.tillagg ? '' : 'none';
+  livTextWrap.classList.toggle('is-visible', state.tillagg==='Livförsäkring');
+  livText.value=state.livText||'';
+  if(state.tillagg==='Målspar'){
+   ctx1Wrap.classList.remove('is-empty');
+   ctx2Wrap.classList.remove('is-empty');
+   ctx1Label.textContent='Antal år';
+   ctx2Label.textContent='Beräknat målbelopp';
+   ctx1Input.placeholder='t.ex. 10';
+   ctx2Input.placeholder='Beräknas automatiskt';
+   ctx2Input.readOnly=true;
+   ctx1Input.value=state.antalAr||'';
+   ctx2Input.value=state.malbelopp||'';
+   return;
+  }
+  if(state.tillagg==='Tjänstepension'){
+   ctx1Wrap.classList.remove('is-empty');
+   ctx1Wrap.classList.remove('use-input');
+   ctx1Wrap.classList.add('use-select');
+   ctx1Label.textContent='Återbetalningsskydd';
+   ctx1Select.value=state.aterbetalningsskydd||'';
+  }
+ }
+ function getValidationError(state){
+  if(!state.reason && !String(state.reasonFree||'').trim()) return 'Ange minst en orsak.';
+  if(!state.tillagg) return '';
+  if(state.tillagg==='Livförsäkring' && !state.livText.trim()) return 'Fyll i <b>Fritext</b>.';
+  if(state.tillagg!=='Livförsäkring' && !state.sparform) return 'Välj <b>Sparform</b>.';
+  if(state.tillagg!=='Tjänstepension' && state.tillagg!=='Livförsäkring' && !state.behov && !state.insattning) return 'Fyll i <b>Månadsspar</b> eller <b>Insättning</b>.';
+  if(state.tillagg==='Målspar' && !state.antalAr) return 'Fyll i <b>Antal år</b>.';
+  if(state.tillagg==='Målspar' && !state.malbelopp) return 'Kontrollera <b>Antal år</b>, <b>Månadsspar</b>, <b>Insättning</b> och <b>Sparform</b>.';
+  if(state.tillagg==='Tjänstepension' && !aterText(state.aterbetalningsskydd)) return 'Välj <b>Återbetalningsskydd</b>.';
+  return '';
+ }
+ function syncOutput(state, options){
+  var next=normalizeState(state);
+  var silent=!!(options&&options.silent);
+  if(next.active){
+   var error=getValidationError(next);
+   if(error){
+    setBlock(blockKey,'');
+    if(!silent) setWarn(error);
+   }else{
+    setBlock(blockKey, buildText(next));
+    if(!silent) setWarn('');
+   }
+  }else if(!silent){
+   setWarn('');
+  }
+  setStandaloneButtonState(btnAdd, !!next.active);
+ }
+ function applyState(state, options){
+  var next=normalizeState(state);
+  selStandard.value=next.tillagg;
+  reasonSelect.value=next.reason;
+  reasonFree.value=next.reasonFree;
+  inputBehov.value=next.behov;
+  inputInsattning.value=next.insattning;
+  selSparform.value=next.sparform;
+  applyContext(next);
+  syncOutput(next, options||{});
+ }
+ function readStateFromDom(){
+  inputBehov.value = digits(inputBehov.value);
+  inputInsattning.value = digits(inputInsattning.value);
+  ctx1Input.value = digits(ctx1Input.value);
+  ctx2Input.value = digits(ctx2Input.value);
+  return normalizeState({
+   tillagg: selStandard.value||'',
+   behov: inputBehov.value||'',
+   insattning: inputInsattning.value||'',
+   sparform: selSparform.value||'',
+   antalAr: ctx1Input.value||'',
+   malbelopp: ctx2Input.value||'',
+   aterbetalningsskydd: ctx1Select.value||'',
+   livText: livText.value||'',
+   reason: reasonSelect.value||'',
+   reasonFree: reasonFree.value||'',
+   active: btnAdd.classList.contains('active')
+  });
+ }
+ function handleStandardChange(){
+  var wasActive=btnAdd.classList.contains('active');
+  var next=readStateFromDom();
+  next.antalAr='';
+  next.malbelopp='';
+  next.aterbetalningsskydd='';
+  if(next.tillagg==='Tjänstepension' || next.tillagg==='Livförsäkring'){ next.behov=''; next.insattning=''; }
+  next.active=wasActive;
+  saveState(next);
+  applyState(next);
+ }
+ function handleFieldInput(){
+  var next=readStateFromDom();
+  next.active=btnAdd.classList.contains('active');
+  saveState(next);
+  applyState(next, { silent: !next.active });
+ }
+ function resetCard(){
+  var next=normalizeState({ active:false });
+  saveState(next);
+  setBlock(blockKey,'');
+  applyState(next, { silent:true });
+ }
+ ['input','change'].forEach(function(ev){
+  [reasonSelect, reasonFree, inputBehov, inputInsattning, selSparform, ctx1Input, ctx1Select, ctx2Input, livText].forEach(function(el){ if(el) el.addEventListener(ev, handleFieldInput); });
+ });
+ selStandard.addEventListener('change', handleStandardChange);
+ btnAdd.addEventListener('click', function(){
+  var current=readStateFromDom();
+  if(btnAdd.classList.contains('active')){
+   current.active=false;
+   saveState(current);
+   setBlock(blockKey,'');
+   applyState(current, { silent:true });
+   showToast('Om annat mål hittats under rådgivningen: borttagen');
+   return;
+  }
+  current.active=true;
+  var error=getValidationError(current);
+  if(error){
+   current.active=false;
+   saveState(current);
+   applyState(current, { silent:true });
+   setWarn(error);
+   return;
+  }
+  saveState(current);
+  applyState(current);
+  showToast('Om annat mål hittats under rådgivningen: tillagd');
+ });
+ registerHybridCard(card, { blockId:blockKey, storageNamespace:storageNs, reset:resetCard });
+ applyState(loadState(), { silent:true });
+}
+function initAnnanSparnivaCard(card){
+ const cardId=card.dataset.orderId||'annan_sparniva';
+ const blockKey=card.dataset.blockId||cardId;
+ const storageNs=card.dataset.storageNs||'sparande.hybrid.annansparniva';
+ const stateKey=storageNs+'.state.v1';
+ const cardTitle=((card.querySelector(':scope > header h2')||{}).textContent||'Annan sparnivå').trim();
+ const amountInput=card.querySelector('#annan_sparniva_amount');
+ const lumpInput=card.querySelector('#annan_sparniva_lump');
+ const reasonSelect=card.querySelector('#annan_sparniva_reason');
+ const reasonFree=card.querySelector('#annan_sparniva_reason_free');
+ const warn=card.querySelector('#annan_sparniva_warn');
+ const btnAdd=card.querySelector('#btn_annan_sparniva_add');
+ const exclusiveGroup=card.dataset.exclusiveGroup||'';
+ if(!amountInput || !lumpInput || !reasonSelect || !reasonFree || !warn || !btnAdd) return;
+ const reasonOptions=[
+  { value:'storre_ekonomiskt_utrymme', label:'Större ekonomiskt utrymme', text:'Orsaken är att du vill behålla ett större löpande utrymme i din ekonomi.' },
+  { value:'ekonomin_forandras', label:'Ekonomin förändras inom kort', text:'Orsaken är att din ekonomi kommer att förändras inom kort.' },
+  { value:'annat_sparmal', label:'Annat sparmål prioriteras', text:'Orsaken är att du prioriterar ett annat sparmål just nu.' },
+  { value:'storre_trygghet', label:'Större trygghet framåt', text:'Orsaken är att du vill skapa större ekonomisk trygghet framåt.' },
+  { value:'na_malet_snabbare', label:'Nå målet snabbare', text:'Orsaken är att du vill nå ditt mål snabbare.' }
+ ];
+ const reasonMap=new Map(reasonOptions.map(function(option){ return [option.value, option]; }));
+ if(reasonSelect.options.length<=1){
+  reasonOptions.forEach(function(option){
+   var el=document.createElement('option');
+   el.value=option.value;
+   el.textContent=option.label;
+   reasonSelect.appendChild(el);
+  });
+ }
+ function digits(value){ return String(value||'').replace(/\D+/g,''); }
+ function normalizeFreeText(value){ return String(value||'').replace(/\r\n?/g,'\n'); }
+ function ensureSentence(value){
+  var text=String(value||'').trim();
+  if(!text) return '';
+  return /[.!?…]$/.test(text) ? text : text+'.';
+ }
+ function normalizeState(data){
+  var next=data&&typeof data==='object' ? data : {};
+  var reason=(next.reason && reasonMap.has(next.reason)) ? next.reason : '';
+  return { active: !!next.active, amount: digits(next.amount), lump: digits(next.lump), reason: reason, reasonFree: normalizeFreeText(next.reasonFree) };
+ }
+ function loadState(){
+  try{ return normalizeState(JSON.parse(safeStorage.getItem(stateKey)||'{}')); }catch(_){ return normalizeState({}); }
+ }
+ function saveState(state){
+  safeStorage.setItem(stateKey, JSON.stringify(normalizeState(state||{})));
+ }
+ function getValidationError(state){
+  if((!state.amount || Number(state.amount)<=0) && (!state.lump || Number(state.lump)<=0)) return 'Fyll i månadssparande eller engångsinsättning.';
+  if(!state.reason && !String(state.reasonFree||'').trim()) return 'Ange minst en orsak.';
+  return '';
+ }
+ function buildText(state){
+  if(!state || !state.active) return '';
+  var error=getValidationError(state);
+  if(error) return '';
+  var choices=[]; if(state.amount && Number(state.amount)>0) choices.push('ett månadssparande på '+state.amount+' kr'); if(state.lump && Number(state.lump)>0) choices.push('en engångsinsättning på '+state.lump+' kr'); var base='Du väljer idag '+(choices.length===2 ? 'att starta '+choices[0]+' och göra '+choices[1] : (state.amount && Number(state.amount)>0 ? 'att starta '+choices[0] : 'att göra '+choices[0]))+'.';
+  var selected=state.reason ? reasonMap.get(state.reason) : null;
+  var free=ensureSentence(String(state.reasonFree||'').trim());
+  if(selected && free) return [base, selected.text, free].join(' ');
+  if(selected) return [base, selected.text].join(' ');
+  if(free) return [base, 'Orsaken är att '+free.charAt(0).toLowerCase()+free.slice(1)].join(' ');
+  return base;
+ }
+ function applyState(state, showWarn){
+  var normalized=normalizeState(state);
+  amountInput.value=normalized.amount;
+  lumpInput.value=normalized.lump;
+  reasonSelect.value=normalized.reason;
+  reasonFree.value=normalized.reasonFree;
+  var error=getValidationError(normalized);
+  warn.textContent=error || 'Fyll i månadssparande eller engångsinsättning och ange minst en orsak.';
+  warn.style.display=(showWarn && !!error) ? 'block' : 'none';
+  setStandaloneButtonState(btnAdd, !!(normalized.active && !error));
+  setBlock(blockKey, buildText(normalized));
+ }
+ function readState(activeValue){
+  return normalizeState({ active: !!activeValue, amount: amountInput.value, lump: lumpInput.value, reason: reasonSelect.value, reasonFree: reasonFree.value });
+ }
+ function syncFormState(){
+  var current=loadState();
+  var next=readState(current.active);
+  if(next.active && getValidationError(next)) next.active=false;
+  saveState(next);
+  applyState(next, false);
+ }
+ function resetCard(){
+  var next=normalizeState({ active:false, amount:'', lump:'', reason:'', reasonFree:'' });
+  saveState(next);
+  applyState(next, false);
+ }
+ ['input','change'].forEach(function(ev){
+  amountInput.addEventListener(ev, syncFormState);
+  lumpInput.addEventListener(ev, syncFormState);
+  reasonSelect.addEventListener(ev, syncFormState);
+  reasonFree.addEventListener(ev, syncFormState);
+ });
+ btnAdd.addEventListener('click', function(){
+  var current=loadState();
+  var next=readState(current.active);
+  var sameActive=current.active && current.amount===next.amount && current.lump===next.lump && current.reason===next.reason && current.reasonFree===next.reasonFree;
+  if(sameActive){
+   next.active=false;
+   saveState(next);
+   applyState(next, false);
+   showToast(cardTitle+': borttagen');
+   return;
+  }
+  var error=getValidationError(next);
+  if(error){
+   next.active=false;
+   saveState(next);
+   applyState(next, true);
+   return;
+  }
+  var exclusiveError=getExclusiveHybridBlockMessage(card, exclusiveGroup);
+  if(exclusiveError){ warn.textContent=exclusiveError; warn.style.display='block'; return; }
+  next.active=true;
+  saveState(next);
+  applyState(next, false);
+  showToast(cardTitle+': '+(current.active ? 'uppdaterad' : 'tillagd'));
+ });
+ registerHybridCard(card, { blockId:blockKey, storageNamespace:storageNs, reset:resetCard, exclusiveGroup:exclusiveGroup, isActive:function(){ var state=loadState(); return !!(state.active && !getValidationError(state)); } });
+ applyState(loadState(), false);
+}
+function initAvvaktarSparandeCard(card){
+ const cardId=card.dataset.orderId||'avvaktar_sparande';
+ const blockKey=card.dataset.blockId||cardId;
+ const storageNs=card.dataset.storageNs||'sparande.hybrid.avvaktarsparande';
+ const stateKey=storageNs+'.state.v1';
+ const cardTitle=((card.querySelector(':scope > header h2')||{}).textContent||'Avvaktar med sparande').trim();
+ const reasonSelect=card.querySelector('#avvaktar_sparande_reason');
+ const reasonFree=card.querySelector('#avvaktar_sparande_reason_free');
+ const warn=card.querySelector('#avvaktar_sparande_warn');
+ const btnAdd=card.querySelector('#btn_avvaktar_sparande_add');
+ const exclusiveGroup=card.dataset.exclusiveGroup||'';
+ if(!reasonSelect || !reasonFree || !warn || !btnAdd) return;
+ const reasonOptions=[
+  { value:'storre_ekonomiskt_utrymme', label:'Större ekonomiskt utrymme', text:'Orsaken är att du vill behålla ett större löpande utrymme i din ekonomi.' },
+  { value:'se_over_ovrig_ekonomi', label:'Övrig ekonomi behöver ses över', text:'Orsaken är att du först vill se över din övriga ekonomi.' },
+  { value:'ekonomin_forandras', label:'Ekonomin förändras inom kort', text:'Orsaken är att din ekonomi kommer att förändras inom kort.' },
+  { value:'annat_sparmal', label:'Annat sparmål prioriteras', text:'Orsaken är att du prioriterar ett annat sparmål just nu.' },
+  { value:'jamfora_alternativ', label:'Vill jämföra alternativ', text:'Orsaken är att du vill jämföra olika alternativ innan du bestämmer dig.' }
+ ];
+ const reasonMap=new Map(reasonOptions.map(function(option){ return [option.value, option]; }));
+ if(reasonSelect.options.length<=1){
+  reasonOptions.forEach(function(option){
+   var el=document.createElement('option');
+   el.value=option.value;
+   el.textContent=option.label;
+   reasonSelect.appendChild(el);
+  });
+ }
+ function normalizeFreeText(value){ return String(value||'').replace(/\r\n?/g,'\n'); }
+ function ensureSentence(value){
+  var text=String(value||'').trim();
+  if(!text) return '';
+  return /[.!?…]$/.test(text) ? text : text+'.';
+ }
+ function normalizeState(data){
+  var next=data&&typeof data==='object' ? data : {};
+  var reason=(next.reason && reasonMap.has(next.reason)) ? next.reason : '';
+  return { active: !!next.active, reason: reason, reasonFree: normalizeFreeText(next.reasonFree) };
+ }
+ function loadState(){
+  try{ return normalizeState(JSON.parse(safeStorage.getItem(stateKey)||'{}')); }catch(_){ return normalizeState({}); }
+ }
+ function saveState(state){
+  safeStorage.setItem(stateKey, JSON.stringify(normalizeState(state||{})));
+ }
+ function getValidationError(state){
+  if(!state.reason && !String(state.reasonFree||'').trim()) return 'Ange minst en orsak.';
+  return '';
+ }
+ function buildText(state){
+  if(!state || !state.active) return '';
+  var error=getValidationError(state);
+  if(error) return '';
+  var base='Du väljer idag att avvakta med att starta ett sparande.';
+  var selected=state.reason ? reasonMap.get(state.reason) : null;
+  var free=ensureSentence(String(state.reasonFree||'').trim());
+  if(selected && free) return [base, selected.text, free].join(' ');
+  if(selected) return [base, selected.text].join(' ');
+  if(free) return [base, 'Orsaken är att '+free.charAt(0).toLowerCase()+free.slice(1)].join(' ');
+  return base;
+ }
+ function applyState(state, showWarn){
+  var normalized=normalizeState(state);
+  reasonSelect.value=normalized.reason;
+  reasonFree.value=normalized.reasonFree;
+  var error=getValidationError(normalized);
+  warn.textContent=error || 'Ange minst en orsak.';
+  warn.style.display=(showWarn && !!error) ? 'block' : 'none';
+  setStandaloneButtonState(btnAdd, !!(normalized.active && !error));
+  setBlock(blockKey, buildText(normalized));
+ }
+ function readState(activeValue){
+  return normalizeState({ active: !!activeValue, reason: reasonSelect.value, reasonFree: reasonFree.value });
+ }
+ function syncFormState(){
+  var current=loadState();
+  var next=readState(current.active);
+  if(next.active && getValidationError(next)) next.active=false;
+  saveState(next);
+  applyState(next, false);
+ }
+ function resetCard(){
+  var next=normalizeState({ active:false, reason:'', reasonFree:'' });
+  saveState(next);
+  applyState(next, false);
+ }
+ ['input','change'].forEach(function(ev){
+  reasonSelect.addEventListener(ev, syncFormState);
+  reasonFree.addEventListener(ev, syncFormState);
+ });
+ btnAdd.addEventListener('click', function(){
+  var current=loadState();
+  var next=readState(current.active);
+  var sameActive=current.active && current.reason===next.reason && current.reasonFree===next.reasonFree;
+  if(sameActive){
+   next.active=false;
+   saveState(next);
+   applyState(next, false);
+   showToast(cardTitle+': borttagen');
+   return;
+  }
+  var error=getValidationError(next);
+  if(error){
+   next.active=false;
+   saveState(next);
+   applyState(next, true);
+   return;
+  }
+  var exclusiveError=getExclusiveHybridBlockMessage(card, exclusiveGroup);
+  if(exclusiveError){ warn.textContent=exclusiveError; warn.style.display='block'; return; }
+  next.active=true;
+  saveState(next);
+  applyState(next, false);
+  showToast(cardTitle+': '+(current.active ? 'uppdaterad' : 'tillagd'));
+ });
+ registerHybridCard(card, { blockId:blockKey, storageNamespace:storageNs, reset:resetCard, exclusiveGroup:exclusiveGroup, isActive:function(){ var state=loadState(); return !!(state.active && !getValidationError(state)); } });
+ applyState(loadState(), false);
+}
+registerHybridInitializer('sparbeslutCard', initSparbeslutCard);
+registerHybridInitializer('tpNewCard', initTpNewCard);
+registerHybridInitializer('annatMalEnkelCard', initAnnatMalEnkelCard);
+registerHybridInitializer('annatMalCard', initAnnatMalCard);
+// avvaktarSparandeCard ersatt av annatMalCard
+registerHybridInitializer('annanSparnivaCard', initAnnanSparnivaCard);
+registerHybridInitializer('utfallCard', initUtfallCard);
+registerHybridInitializer('riskCard', initRiskCard);
+document.querySelectorAll('section.card[data-card-kind="hybrid"]').forEach(card=>{ const initKey=card.dataset.hybridInit||''; const initializer=hybridCardInitializers.get(initKey); if(typeof initializer==='function'){ try{ initializer(card); }catch(err){ console.error('Stöd1 kortfel:',initKey,err); } } });
+// Buffert
+buffGroup.querySelector('#btn_buff_avr').addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('buff',''); setActiveInGroup('buff', null); showToast('Begränsad buffert: Avrådan borttagen'); return; } setBlock('buff','AVRÅDAN\nMålet har inte behandlats i mötet på grund av begränsad buffert. Jag har rekommenderat dig att först spara ihop en buffert på ett vanligt sparkonto alternativt ett olåst fasträntekonto via din bank som är tillräcklig för att klara en kortsiktig ekonomisk utmaning innan jag rekommenderar att börja spara långsiktigt hos oss.'); setActiveInGroup('buff', this); showToast('Begränsad buffert: Avrådan tillagd'); });
+buffGroup.querySelector('#btn_buff_utry').addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('buff',''); setActiveInGroup('buff', null); showToast('Begränsad buffert: Utrymme finns borttagen'); return; } setBlock('buff','BEGRÄNSAD BUFFERT\nJag har rekommenderat dig att öka upp din buffert samtidigt som jag har rekommenderat att spara långsiktigt i en kapitalförsäkring. Enligt den ekonomiska sammanställningen finns utrymme till båda delarna.'); setActiveInGroup('buff', this); showToast('Begränsad buffert: Utrymme finns tillagd'); });
+// FM
+function validateFM(){ const v=selFM.value.trim(); const ok=!!v; warnFM.style.display = ok ? 'none' : 'block'; return ok ? v : null; }
+function buildFM(v){ const via = (v==='E-post') ? 'e-postadress' : 'postadress'; return `Du har informerat mig att du vill ändra ordningen i ditt förmånstagarförordnande gällande din kapitalförsäkring. Jag skickar till din ${via}. För att ändra förmånstagare är det upp till dig att fylla i blanketten och skicka tillbaka den till oss innan ändringen blir giltig.`; }
+btnFMAdd.addEventListener('click', function(){ if(this.classList.contains('active')){ clearFMState(); showToast('Förmånstagarförordnande borttaget.'); return; } const v=validateFM(); if(!v) return; setBlock('fm', buildFM(v)); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Förmånstagarförordnande tillagt.'); });
+if(btnGrpCopy){ btnGrpCopy.addEventListener('click', function(){ const text="Vi har i dag gått igenom ditt behov av fackliga försäkringar. Jag har informerat dig om hur ditt nuvarande försäkringsskydd ser ut och hänvisat dig till vår hemsida för eventuella kompletteringar. \nJag har även ställt frågor kring eventuella oanmälda skador och hänvisat dig till rätt kontaktväg för att hantera dessa."; setBlock('grp', text); showToast('Grp/skador tillagd.'); }); }
+// Annat mål
+function validateAnnat(){ const u=selU.value.trim(), t=selT.value.trim(); const ok= !!u && !!t; warnA.style.display = ok ? 'none' : 'block'; return ok ? {urspr:u, till:t} : null; }
+function buildAnnat({urspr, till}){ return `Inledningsvis var tanken enbart att se över ${urspr} men under rådgivningens gång ville du även starta ett ${till}`; }
+btnAnnatAdd.addEventListener('click', function(){ if(this.classList.contains('active')){ clearAnnatState(); showToast('Annat mål borttaget.'); return; } const v=validateAnnat(); if(!v) return; setBlock('annat', buildAnnat(v)); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Annat mål tillagt.'); });
+if(btnAwaitSaveCopy){ btnAwaitSaveCopy.addEventListener('click', async function(){ var amount=(awaitSaveAmount && awaitSaveAmount.value ? String(awaitSaveAmount.value) : '').trim(); var form=(awaitSaveForm && awaitSaveForm.value ? awaitSaveForm.value : ''); var reason=(awaitSaveReason && awaitSaveReason.value ? awaitSaveReason.value : ''); var formText = form==='fond' ? 'fond förvaltad kapitalförsäkring' : (form==='traditionellt ' ? 'traditionellt förvaltad kapitalförsäkring' : ''); var reasonText = reason==='annat_sparande' ? 'att du prioriterar annat sparande' : (reason==='ekonomiskt_utrymme' ? 'att du saknar utrymme i ekonomin just nu' : (reason==='vill_avvakta' ? 'att du vill fundera ett tag' : '')); if(!amount || !formText || !reasonText){ alert('Fyll i sparbelopp, sparform och orsak till att avvakta.'); return; } var text='Vi har i mötet genomfört en individuell behovsanalys, baserad på nuvarande pensionstillgångar, förväntade framtida premieinbetalningar samt individuella mål, där du har detaljerat ditt behov av framtida pension. Utkomsten av analysen är att du skulle behöva starta ett kompletterande sparande på ca '+amount+' kr/mån till pension för att nå dina mål. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+formText+', med en fondportfölj som är lämplig utifrån dina investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomiska situation.\n\nDu väljer att avvakta med sparandet på grund av '+reasonText+'.'; await copyText(text); showToast('Text kopierad.'); }); }
+// Utfall
+// Notes update/clear
+function copyOutputText(text,warnId,successMessage){ text=(text||'').trim(); const warn=document.getElementById(warnId); if(!text){ if(warn) warn.style.display='block'; return; } if(warn) warn.style.display='none'; navigator.clipboard.writeText(text).then(function(){ showToast(successMessage); }).catch(function(){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){ } document.body.removeChild(ta); showToast(successMessage); }); }
+document.getElementById('btn_copy_tp').addEventListener('click',function(){ copyOutputText(getTpOutputText(),'warn_copy_tp','Tjänstepension kopierad.'); });
+document.getElementById('btn_copy_spar').addEventListener('click',function(){ copyOutputText(getSparOutputText(),'warn_copy_spar','Sparbeslut kopierat.'); });
+// snapshot fields + listeners
+function snapshotFields(){ return { tp_placeras: selPlac.value, tp_valcentral: selVC.value, fm_sandning: selFM.value, annat_urspr: selU.value, annat_tillagg: selT.value, await_save_amount: awaitSaveAmount ? awaitSaveAmount.value : '', await_save_form: awaitSaveForm ? awaitSaveForm.value : '', await_save_reason: awaitSaveReason ? awaitSaveReason.value : '' }; }
+;['input','change'].forEach(ev=>{ [selPlac, selVC, selFM, selU, selT, awaitSaveAmount, awaitSaveForm, awaitSaveReason].forEach(el=>{ if(el) el.addEventListener(ev, ()=> safeFields()); }); });
+function safeFields(){ try{ safeStorage.setItem('sparande.fields.v1', JSON.stringify(snapshotFields())); }catch(_){ } }
+taNotes.addEventListener('input', function(){ saveNotes(); setBlock('ovrigt',taNotes.value); });
+taNotesTp.addEventListener('input', function(){ saveTpNotes(); setBlock('tp_extra',taNotesTp.value); });
+// init
+try{ const s = JSON.parse(safeStorage.getItem('sparande.store.v1')||'{}'); if(s && typeof s==='object'){ Object.keys(s).forEach(k=>{ if(typeof s[k]==='string') store[k]=s[k]; }); } }catch(_){ }
+renderOut(); restoreActiveButtons(); syncStandaloneButtons(); loadNotes(); loadTpNotes(); setBlock('ovrigt',taNotes.value); setBlock('tp_extra',taNotesTp.value); try{ const f=JSON.parse(safeStorage.getItem('sparande.fields.v1')||'{}'); if(f.tp_placeras) selPlac.value=f.tp_placeras; if(f.tp_valcentral) selVC.value=f.tp_valcentral; if(f.fm_sandning) selFM.value=f.fm_sandning; if(f.annat_urspr) selU.value=f.annat_urspr; if(f.annat_tillagg) selT.value=f.annat_tillagg; if(typeof f.await_save_amount==='string' && awaitSaveAmount) awaitSaveAmount.value=f.await_save_amount; if(typeof f.await_save_form==='string' && awaitSaveForm) awaitSaveForm.value=f.await_save_form; if(typeof f.await_save_reason==='string' && awaitSaveReason) awaitSaveReason.value=f.await_save_reason; }catch(_){ }
+function stod1ResetAll(){
+ performFullReset();
+ try{ safeStorage.removeItem('sparande.collapse.v1'); }catch(_){ }
+ try{ safeStorage.removeItem('sparande.order.v1'); }catch(_){ }
+ try{ safeStorage.removeItem('sparande.order.default.v1.container'); }catch(_){ }
+}
+function runResetHash(){
+ if(!/^#reset-all(?:[-=]\d+)?$/.test(location.hash)) return;
+ stod1ResetAll();
+ try{ history.replaceState(null,'', location.pathname + location.search); }catch(_){ }
+}
+runResetHash();
+window.addEventListener('hashchange', runResetHash);
+ (function(){
+ const COLL_K='sparande.collapse.v1';
+ function load(){ try{return JSON.parse(localStorage.getItem(COLL_K)||'{}')}catch(e){return{}} }
+ function save(s){ try{localStorage.setItem(COLL_K, JSON.stringify(s))}catch(e){} }
+ const state=load();
+ const cards=[...document.querySelectorAll('section.card')];
+ cards.forEach(card=>{
+ const header=card.querySelector(':scope > header'); const content=card.querySelector(':scope > .content'); if(!header||!content) return;
+ const name=(header.querySelector('h2')||{}).textContent||'kort'; const key='coll_'+name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_');
+ if(!content.id) content.id=key;
+ const lockOpen = card.id==='sek_out';
+ const expanded = lockOpen ? true : state[key]!==false;
+ header.setAttribute('aria-expanded', expanded?'true':'false');
+ if(lockOpen){ state[key]=true; save(state); return; }
+ const btn=document.createElement('button'); btn.className='collapse-toggle'; btn.type='button'; btn.setAttribute('aria-controls', content.id);
+ const setLabel=()=>{ btn.textContent=header.getAttribute('aria-expanded')==='true'?'Komprimera':'Expandera' }; setLabel();
+ btn.addEventListener('click',()=>{ const now=header.getAttribute('aria-expanded')==='true'?'false':'true'; header.setAttribute('aria-expanded',now); state[key]=(now==='true'); save(state); setLabel(); });
+ header.appendChild(btn);
+ });
+ })();
+ (function(){
+ const leftStack=document.getElementById('notes_left_stack');
+ if(!leftStack) return;
+ const getCards=()=>[...leftStack.querySelectorAll(':scope > section.card[data-order-id]:not([data-card-disabled="1"])')];
+ const tools=document.createElement('div');
+ tools.className='left-tools';
+ const toggleCollapseBtn=document.createElement('button');
+ toggleCollapseBtn.className='btn btn-ghost';
+ toggleCollapseBtn.id='btn_toggle_all_cards';
+ toggleCollapseBtn.type='button';
+ toggleCollapseBtn.textContent='Komprimera alla';
+ tools.appendChild(toggleCollapseBtn);
+ const toolsHost=document.getElementById('notes_tools_host');
+ if(toolsHost) toolsHost.appendChild(tools);
+ else leftStack.insertBefore(tools, leftStack.firstElementChild);
+ function getCollKey(card){
+  const header=card.querySelector(':scope > header');
+  const name=((header && header.querySelector('h2'))||{}).textContent||'kort';
+  return 'coll_'+name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_');
+ }
+ function allCardsCollapsed(){
+  return getCards().every(card=>{ const header=card.querySelector(':scope > header'); return header && header.getAttribute('aria-expanded')==='false'; });
+ }
+ function updateToggleCollapseBtn(){
+  toggleCollapseBtn.textContent = allCardsCollapsed() ? 'Expandera alla' : 'Komprimera alla';
+ }
+ function setAllCardsExpanded(expanded){
+  const state=(()=>{ try{return JSON.parse(safeStorage.getItem(COLL_K)||'{}');}catch(_){ return {}; } })();
+  getCards().forEach(card=>{
+   const header=card.querySelector(':scope > header');
+   if(!header) return;
+   header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+   const btn=header.querySelector('.collapse-toggle');
+   if(btn) btn.textContent = expanded ? 'Komprimera' : 'Expandera';
+   state[getCollKey(card)] = !!expanded;
+  });
+  try{ safeStorage.setItem(COLL_K, JSON.stringify(state)); }catch(_){ }
+  updateToggleCollapseBtn();
+ }
+ updateToggleCollapseBtn();
+ toggleCollapseBtn.addEventListener('click', ()=>{
+  setAllCardsExpanded(allCardsCollapsed());
+ });
+ leftStack.addEventListener('click', e=>{
+  const btn=e.target.closest('.collapse-toggle');
+  if(!btn) return;
+  setTimeout(updateToggleCollapseBtn, 0);
+ });
+ })();
+});
+</script>
+<script>
+(function(){
+ window.addEventListener('storage', function(e){
+ if(e.key==='stod1.theme.v1'){
+ var theme = e.newValue === 'light' ? 'light' : 'dark';
+ document.documentElement.setAttribute('data-theme', theme);
+ }
+ });
+})();
+</script>
+</body>
+</html>

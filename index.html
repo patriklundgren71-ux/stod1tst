@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Stöd1</title>
+<script>
+(function(){
+ try{
+  var theme = localStorage.getItem('stod1.theme.v1') || 'dark';
+  if(theme !== 'light') theme = 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+ }catch(e){}
+})();
+</script>
+<script>
+const APP = { version: '2.3.0' };
+</script>
+<style>
+ :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--line:#2b3545;--text:#e5e7eb;--muted:#9ca3af;--accent:#0ea5e9;--ink:#0b1220}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+ header.app{padding:14px 16px;background:linear-gradient(90deg,var(--panel),#0b1020);border-bottom:1px solid #0b1020;display:flex;align-items:center;gap:12px;position:relative}
+ header.app h1{margin:0;font-size:20px;cursor:pointer}
+ header.app h1:hover{opacity:.92}
+ /* Primary tabs */
+ .tabs{display:flex;gap:8px;margin-left:12px}
+ .tab{appearance:button;border-radius:8px;border:1px solid var(--line);padding:8px 12px;font-weight:600;cursor:pointer;color:#cbd5e1;background:transparent}
+ .tab:hover{background:#0b1220}
+ .tab.active{background:linear-gradient(180deg,var(--accent),#0284c7);color:#06253a;border-color:#67e8f9}
+ .spacer{flex:1}
+ /* Tools (Fusklappar) */
+ .tool-trigger{appearance:button;border-radius:8px;border:1px solid #2b3545;padding:6px 10px;background:transparent;color:#cbd5e1;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+ .tool-trigger:hover{background:#0b1220}
+ .header-actions{display:flex;align-items:center;gap:14px;margin-left:14px}
+ .header-divider{width:1px;height:24px;background:#2b3545;opacity:.95}
+ .header-action{appearance:button;border-radius:10px;border:1px solid #2b3545;padding:7px 12px;background:linear-gradient(180deg,#172030,#0f172a);color:#e5e7eb;font-size:12px;font-weight:700;cursor:pointer;transition:filter .15s, background .15s, border-color .15s, box-shadow .15s}
+ .header-action:hover{filter:brightness(1.05);background:#0b1220}
+ .header-action:focus-visible{outline:0;border-color:#3b82f6;box-shadow:0 0 0 4px rgba(96,165,250,.14)}
+ .dropdown{position:relative}
+ .menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--card);border:1px solid var(--line);border-radius:10px;min-width:220px;box-shadow:0 12px 30px rgba(0,0,0,.5);display:none;padding:6px}
+ .menu.open{display:block}
+ .menu button{width:100%;text-align:left;background:transparent;border:0;color:#e5e7eb;padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer}
+ .menu button:hover{background:#0b1220}
+ /* Meta */
+ .chip{background:rgba(99,102,241,.15);border:1px solid #6366f1;color:#c7d2fe;padding:4px 8px;border-radius:999px;font-weight:700;font-size:12px;cursor:pointer}
+ .btn-link{background:transparent;border:0;color:#9ca3af;padding:4px 6px;font-size:12px;cursor:pointer}
+ .btn-link:hover{color:#e5e7eb}
+ main{padding:0}
+ .panel{display:none}
+ .panel.active{display:block}
+ iframe{width:100%;height:calc(100vh - 70px);border:0;display:block;background:#0b1220}
+ /* Shared modal base */
+ .backdrop{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9998}
+ .modal{position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); width:min(820px, 94vw); background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden}
+ .modal header{padding:12px 14px; border-bottom:1px solid #283244; background:linear-gradient(90deg,var(--panel),#0b1020)}
+ .modal h2{margin:0; font-size:15px}
+ .modal .body{padding:12px 14px}
+ .actions{display:flex; gap:8px; justify-content:flex-end; padding:10px 14px; border-top:1px solid #283244}
+ .muted{color:#9ca3af}
+ .changelog{list-style:disc; padding-left:18px}
+ .ver{font-weight:700}
+ table{border-collapse:collapse;width:100%}
+ th, td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+ tr.hl td{background:#0b1220}
+ .inline-field{display:flex;align-items:center;gap:8px}
+ input[type=number]{background:#0b1220;color:#e5e7eb;border:1px solid #2b3545;border-radius:8px;padding:8px 10px;width:110px}
+ .pill{background:#0b1220;border:1px solid #2b3545;color:#cbd5e1;border-radius:999px;padding:4px 8px;font-size:12px}
+ .tasks-area{width:100%;min-height:280px;resize:vertical;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;outline:none}
+ .tasks-select{width:100%;margin-top:10px;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;outline:none}
+ .tasks-edit-wrap{display:none;gap:10px;flex-direction:column;margin-top:10px}
+ .tasks-edit-wrap.open{display:flex}
+ .tasks-edit-row{display:flex;gap:8px;align-items:center}
+ .tasks-edit-row input[type=text]{width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;outline:none}
+ .tasks-edit-actions{display:flex;gap:8px;flex-wrap:wrap}
+.kundavisering-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+.kundavisering-field label{display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px}
+.kundavisering-field input,.kundavisering-field select{width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;outline:none}
+.kundavisering-preview{white-space:pre-wrap;background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-height:170px}
+@media(max-width:700px){.kundavisering-grid{grid-template-columns:1fr}}
+
+#rpr_backdrop .rpr-info-banner{margin-bottom:10px;background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,.9);color:#dbeafe;border-radius:10px;padding:9px 11px;font-weight:700}
+#rpr_backdrop .rpr-monthly-highlight{background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,.9);border-radius:10px;padding:10px 12px;margin-top:10px}
+#rpr_backdrop .rpr-monthly-highlight .muted{color:#dbeafe;font-weight:700}
+header.app{ z-index:20000 !important; }
+header.app .dropdown .menu{ z-index:20020 !important; }
+#toast{position:fixed;left:16px;top:78px;background:#111827;color:#e5e7eb;border:1px solid #3b4558;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;line-height:1.2;display:none;z-index:21000;box-shadow:0 8px 18px rgba(0,0,0,.28);opacity:0;transform:translateY(-6px);transition:opacity .16s ease, transform .16s ease}
+#toast.show{display:block;opacity:1;transform:translateY(0)}
+:root[data-theme="light"]{
+ --bg:#f3f5f8;
+ --panel:#ffffff;
+ --card:#ffffff;
+ --line:#d6dde8;
+ --text:#0f172a;
+ --muted:#64748b;
+ --accent:#2563eb;
+ --ink:#ffffff;
+}
+:root[data-theme="light"] header.app{background:linear-gradient(90deg,var(--panel),#eef2f7);border-bottom:1px solid var(--line)}
+:root[data-theme="light"] .tab{color:#334155}
+:root[data-theme="light"] .tab:hover{background:#eef2f7}
+:root[data-theme="light"] .tab.active{background:linear-gradient(180deg,var(--accent),#1d4ed8);color:#ffffff;border-color:#2563eb}
+:root[data-theme="light"] .tool-trigger{color:#334155;border-color:var(--line)}
+:root[data-theme="light"] .tool-trigger:hover{background:#eef2f7}
+:root[data-theme="light"] .header-divider{background:var(--line)}
+:root[data-theme="light"] .header-action{background:linear-gradient(180deg,#ffffff,#f8fafc);color:#0f172a;border-color:var(--line)}
+:root[data-theme="light"] .header-action:hover{background:#eef2f7}
+:root[data-theme="light"] .menu{box-shadow:0 12px 30px rgba(15,23,42,.12)}
+:root[data-theme="light"] .menu button{color:#0f172a}
+:root[data-theme="light"] .menu button:hover{background:#eef2f7}
+:root[data-theme="light"] .chip{background:#eef2ff;border-color:#818cf8;color:#3730a3}
+:root[data-theme="light"] iframe{background:#f3f5f8}
+:root[data-theme="light"] .backdrop{background:rgba(15,23,42,.18)}
+:root[data-theme="light"] .modal{box-shadow:0 20px 60px rgba(15,23,42,.18)}
+:root[data-theme="light"] .modal header{background:linear-gradient(90deg,var(--panel),#eef2f7);border-bottom:1px solid var(--line)}
+:root[data-theme="light"] .actions{border-top:1px solid var(--line)}
+:root[data-theme="light"] tr.hl td{background:#eef2f7}
+:root[data-theme="light"] input[type=number]{background:#ffffff;color:#0f172a;border-color:var(--line)}
+:root[data-theme="light"] .pill{background:#ffffff;border-color:var(--line);color:#334155}
+:root[data-theme="light"] .tasks-area{background:#ffffff;color:#0f172a;border-color:var(--line)}
+:root[data-theme="light"] .tasks-select{background:#ffffff;color:#0f172a;border-color:var(--line)}
+:root[data-theme="light"] .tasks-edit-row input[type=text]{background:#ffffff;color:#0f172a;border-color:var(--line)}
+:root[data-theme="light"] .kundavisering-field label{color:#334155}
+:root[data-theme="light"] .kundavisering-field input,:root[data-theme="light"] .kundavisering-field select,:root[data-theme="light"] .kundavisering-preview{background:#ffffff;color:#0f172a;border-color:var(--line)}
+:root[data-theme="light"] #rpr_backdrop .rpr-info-banner{background:#dbeafe;border-color:#2563eb;color:#1e3a8a}
+:root[data-theme="light"] #rpr_backdrop .rpr-monthly-highlight{background:#dbeafe;border-color:#2563eb}
+:root[data-theme="light"] #rpr_backdrop .rpr-monthly-highlight .muted{color:#1e3a8a}
+:root[data-theme="light"] #mbrikt_backdrop .modal{box-shadow:0 20px 60px rgba(15,23,42,.18)}
+:root[data-theme="light"] #mbrikt_backdrop .btn-primary{background:linear-gradient(180deg,var(--accent),#1d4ed8);color:#ffffff;border-color:#2563eb}
+:root[data-theme="light"] #mbrikt_backdrop .btn-ghost{color:#334155}
+:root[data-theme="light"] #mbrikt_backdrop .btn-link:hover{color:#0f172a}
+:root[data-theme="light"] #mbrikt_backdrop summary{color:#64748b}
+:root[data-theme="light"] #toast{background:#ffffff;color:#0f172a;border-color:#cbd5e1;box-shadow:0 8px 18px rgba(15,23,42,.14)}
+</style>
+</head>
+<body>
+<header class="app">
+<h1 id="app_about_trigger" role="button" tabindex="0" aria-haspopup="dialog">Stöd1</h1>
+<nav aria-label="Primära flikar" class="tabs" role="tablist">
+<button aria-selected="true" class="tab active" data-tab="goal" role="tab">Målsättning</button>
+<button aria-selected="false" class="tab" data-tab="savings" role="tab">Uppfyllda behov</button>
+<button aria-selected="false" class="tab" data-tab="notes" role="tab">Övriga noteringar</button>
+</nav>
+<div class="spacer"></div>
+<!-- Fusklappar dropdown -->
+<div class="header-actions">
+<div class="dropdown" id="tools2_dd">
+<button aria-expanded="false" aria-haspopup="true" class="tool-trigger" id="btn_tools2">Verktyg ▾</button>
+<div aria-label="Verktyg" class="menu" id="tools2_menu" role="menu">
+</div>
+</div>
+<div class="dropdown" id="tools_dd">
+<button aria-expanded="false" aria-haspopup="true" class="tool-trigger" id="btn_tools">Fusklappar ▾</button>
+<div aria-label="Fusklappar" class="menu" id="tools_menu" role="menu">
+</div>
+</div>
+<div aria-hidden="true" class="header-divider"></div>
+<button class="header-action" id="btn_theme" type="button">Ljust läge</button>
+<button class="header-action" id="btn_clear_panel" type="button">Rensa fönster</button>
+<button class="header-action" id="btn_clear_all" type="button">Rensa allt</button>
+<div aria-hidden="true" class="header-divider"></div>
+<!-- Meta -->
+<span class="chip" id="ver_chip" title="Visa versionshistorik">v<//span>
+</div>
+</header>
+<div id="toast"></div>
+<main>
+<section class="panel active" id="p-goal">
+<iframe id="frame-goal" src="./Goalsetting.html" title="Målsättning"></iframe>
+</section>
+<section class="panel" id="p-savings">
+<iframe id="frame-savings" src="./savings.html" title="Sparande"></iframe>
+</section>
+<section class="panel" id="p-notes">
+<iframe id="frame-notes" src="./othernotes.html" title="Dokumentation"></iframe>
+</section>
+</main>
+ <div aria-labelledby="hist_title" aria-modal="true" class="backdrop" id="hist_backdrop" role="dialog" style="display:none">
+ <div class="modal" style="width:min(760px,92vw);max-height:min(760px,calc(100vh - 32px));display:flex;flex-direction:column">
+ <header><h2 id="hist_title" style="margin:0;font-size:15px">Versionshistorik – Stöd1</h2></header>
+ <div class="body" style="overflow:auto;max-height:calc(100vh - 150px)">
+ <div id="hist_list"></div>
+ </div>
+ <div class="actions"><button class="btn-link" id="hist_close" type="button">Stäng</button></div>
+ </div>
+ </div>
+<div aria-labelledby="about_title" aria-modal="true" class="backdrop" id="about_backdrop" role="dialog" style="display:none">
+ <div class="modal" style="width:min(560px,92vw)">
+ <header><h2 id="about_title" style="margin:0;font-size:15px">Om Stöd1</h2></header>
+ <div class="body">
+ <div style="display:grid;gap:10px">
+ <div><strong>Stöd1</strong></div>
+ <div>Version</div>
+ <div>Skapad av: <span id="kundavisering_open" style="cursor:pointer">Patrik Lundgren</span></div>
+ <div>Kontakt: patrik.lundgren@folksam.se</div>
+ <div>Senast uppdaterad: 2026-10-11</div>
+ <div>Internt stödverktyg för dokumentation, stödmaterial och praktiska arbetsverktyg.</div>
+ </div>
+ </div>
+ <div class="actions"><button class="btn-link" id="about_close" type="button">Stäng</button></div>
+ </div>
+</div>
+<div aria-labelledby="update_title" aria-modal="true" class="backdrop" id="update_backdrop" role="dialog" style="display:none">
+ <div class="modal" style="width:min(520px,92vw)">
+ <header><h2 id="update_title" style="margin:0;font-size:15px">Stöd1 har uppdaterats</h2></header>
+ <div class="body">
+ <p style="margin:0">Du använder nu den senaste publicerade versionen.</p>
+ <p style="margin:10px 0 0">Tryck på versionsnumret för att se vad som har ändrats.</p>
+ </div>
+ <div class="actions"><button class="btn-link" id="update_close" type="button">Stäng</button></div>
+ </div>
+</div>
+<!-- Dagsmål modal -->
+<div aria-labelledby="dm_title" aria-modal="true" class="backdrop" id="dm_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(620px,94vw)">
+<header><h2 id="dm_title" style="margin:0;font-size:15px">Dagsmål</h2></header>
+<div class="body">
+<div style="display:grid;gap:12px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end">
+<div>
+<label for="dm_hours" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Arbetstid</label>
+<input id="dm_hours" type="number" min="0" step="0.1" inputmode="decimal" placeholder="t.ex. 5" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+<div>
+<label for="dm_ftim" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">F/TIM</label>
+<input id="dm_ftim" type="number" min="0" step="0.01" inputmode="decimal" placeholder="t.ex. 0,3" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+</div>
+<div id="dm_warn" class="muted" style="display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px">Ange giltiga värden för Arbetstid och F/TIM.</div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div class="muted" style="margin-bottom:4px">Resultat</div>
+<div id="dm_result" style="font-size:22px;font-weight:700;line-height:1.2">—</div>
+<div id="dm_info" class="muted" style="margin-top:6px">Fyll i arbetstid och F/TIM.</div>
+</div>
+<div class="muted">Dagsmål räknas som Arbetstid × F/TIM och avrundas alltid uppåt till heltal.</div>
+</div>
+</div>
+<div class="actions"><button class="btn-link" id="dm_clear" type="button">Rensa</button><button class="btn-link" id="dm_close" type="button">Stäng</button></div>
+</div>
+</div>
+<!-- =========================================================
+     VERKTYG: RÄNTA PÅ RÄNTA - HTML
+     Här finns bara modalens fält och resultatytor.
+     JavaScript-logiken finns längre ned i verktygssektionen.
+========================================================= -->
+<div aria-labelledby="rpr_title" aria-modal="true" class="backdrop" id="rpr_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(940px,96vw)">
+<header><h2 id="rpr_title" style="margin:0;font-size:15px">Ränta på ränta</h2></header>
+<div class="body">
+<div class="rpr-info-banner">Resultatet är en uppskattning baserad på antagna värden och utgör ingen exakt prognos eller garanti för framtida utfall.</div>
+<div style="display:grid;grid-template-columns:1.08fr 0.92fr;gap:16px;align-items:start">
+<div style="display:grid;gap:12px">
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div>
+<label for="rpr_product" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Sparform hos Folksam</label>
+<select id="rpr_product" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">
+<option value="">(välj)</option>
+<option value="privatspar">Privatspar</option>
+<option value="privatpension">Privatpension</option>
+<option value="privatspar_fond">Privatspar Fond</option>
+<option value="medlemspar_fond">Medlemspar Fond</option>
+<option value="custom">Anpassat</option>
+</select>
+</div>
+<div id="rpr_product_info" class="muted" style="margin-top:8px;display:none"></div>
+</div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div style="font-weight:700;margin-bottom:10px">Sparfas</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end">
+<div>
+<label for="rpr_monthly" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Månadssparande</label>
+<input id="rpr_monthly" type="number" min="0" step="100" inputmode="decimal" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+<div>
+<label for="rpr_years" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Spartid (år)</label>
+<input id="rpr_years" type="number" min="0" step="1" inputmode="numeric" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-top:12px">
+<div>
+<label for="rpr_lump" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Engångsinsättning</label>
+<input id="rpr_lump" type="number" min="0" step="1000" inputmode="decimal" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+<div>
+<label for="rpr_rate" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Förväntad avkastning (%)</label>
+<input id="rpr_rate" type="number" min="0" step="0.1" inputmode="decimal" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-top:12px">
+<div>
+<label for="rpr_fixed" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Fast avgift (kr/år)</label>
+<input id="rpr_fixed" type="number" min="0" step="10" inputmode="decimal" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+<div>
+<label for="rpr_variable" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Rörlig avgift (%)</label>
+<input id="rpr_variable" type="number" min="0" step="0.01" inputmode="decimal" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-top:12px">
+<div>
+<label for="rpr_premium" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Premieavgift (%)</label>
+<input id="rpr_premium" type="number" min="0" step="0.01" inputmode="decimal" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+<div>
+<label for="rpr_tax" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Skatt (%)</label>
+<input id="rpr_tax" type="number" min="0" step="0.001" inputmode="decimal" value="1.065" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+</div>
+</div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div style="font-weight:700;margin-bottom:10px">Utbetalningsfas</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end">
+<div>
+<label for="rpr_payout_years" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Utbetalningstid (år)</label>
+<input id="rpr_payout_years" type="number" min="0" step="1" inputmode="numeric" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+<div>
+<label for="rpr_payout_rate" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Avkastning under utbetalning (%)</label>
+<input id="rpr_payout_rate" type="number" min="0" step="0.1" inputmode="decimal" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+</div>
+<div class="muted" style="margin-top:10px">Samma avgifter används i sparfas och utbetalningsfas. Avkastningen under utbetalning kan sättas separat för att ge en försiktigare prognos.</div>
+</div>
+<div id="rpr_warn" class="muted" style="display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px">Fyll i minst spartid, utbetalningstid och ett sparande eller en engångsinsättning för att se resultat.</div>
+</div>
+<div style="display:grid;gap:12px">
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div style="font-weight:700;margin-bottom:10px">Sparfas</div>
+<div class="muted" style="margin-bottom:4px">Insatt kapital</div>
+<div id="rpr_out_invested" style="font-size:22px;font-weight:700;line-height:1.2">—</div>
+<div id="rpr_label_value_save" class="muted" style="margin:10px 0 4px 0">Värde efter — år</div>
+<div id="rpr_out_value_save" style="font-size:22px;font-weight:700;line-height:1.2">—</div>
+<div class="muted" style="margin:10px 0 4px 0">Värdeökning under spartid</div>
+<div id="rpr_out_growth_save" style="font-size:22px;font-weight:700;line-height:1.2">—</div>
+</div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div style="font-weight:700;margin-bottom:10px">Utbetalningsfas</div>
+<div id="rpr_label_value_total" class="muted" style="margin-bottom:4px">Värde efter — år</div>
+<div id="rpr_out_value_total" style="font-size:22px;font-weight:700;line-height:1.2">—</div>
+<div class="muted" style="margin:10px 0 4px 0">Total värdeökning</div>
+<div id="rpr_out_growth_total" style="font-size:22px;font-weight:700;line-height:1.2">—</div>
+<div class="rpr-monthly-highlight">
+<div class="muted" style="margin-bottom:4px">Snitt per månad</div>
+<div id="rpr_out_monthly" style="font-size:22px;font-weight:700;line-height:1.2">—</div>
+</div>
+<div id="rpr_info" class="muted" style="margin-top:10px">Resultatet visas när spartid, utbetalningstid och sparbelopp har fyllts i.</div>
+</div>
+</div>
+</div>
+</div>
+<div class="actions"><button class="btn-link" id="rpr_clear" type="button">Rensa</button><button class="btn-link" id="rpr_close" type="button">Stäng</button></div>
+</div>
+</div>
+<!-- Barnbidrag modal -->
+<div aria-labelledby="bb_title" aria-modal="true" class="backdrop" id="bb_backdrop" role="dialog">
+<div class="modal" id="bb_modal" style="width:min(560px,94vw)">
+<header><h2 id="bb_title">Barnbidrag – översikt</h2></header>
+<div class="body">
+<div class="inline-field" style="margin-bottom:8px">
+<label class="muted" for="bb_count">Antal barn</label>
+<input id="bb_count" max="6" min="1" placeholder="1–6" type="number"/>
+</div>
+<div style="overflow:auto;max-height:58vh">
+<table>
+<thead>
+<tr>
+<th>Antal barn</th>
+<th>Totalt</th>
+<th>Delat</th>
+</tr>
+</thead>
+<tbody id="bb_tbody"></tbody>
+</table>
+</div>
+</div>
+<div class="actions"><button class="btn-link" id="bb_close">Stäng</button></div>
+</div>
+</div>
+<!-- Tidsslottar modal -->
+<div aria-labelledby="slots_title" aria-modal="true" class="backdrop" id="slots_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(560px,94vw)">
+<header><h2 id="slots_title" style="margin:0;font-size:15px">Tidsslottar</h2></header>
+<div class="body">
+<table>
+<thead>
+<tr><th>Mån–tors</th><th>Fre</th></tr>
+</thead>
+<tbody>
+<tr><td>08:15</td><td>08:15</td></tr>
+<tr><td>09:30</td><td>09:30</td></tr>
+<tr><td>10:45</td><td>10:45</td></tr>
+<tr><td>12:00</td><td>12:00</td></tr>
+<tr><td>13:15</td><td>13:15</td></tr>
+<tr><td>14:30</td><td>14:30</td></tr>
+<tr><td>15:45</td><td>15:45</td></tr>
+<tr><td>17:00</td><td>–</td></tr>
+<tr><td>18:15</td><td>–</td></tr>
+<tr><td>19:30</td><td>–</td></tr>
+</tbody>
+</table>
+<p class="muted" style="margin-top:8px">Endast visning. Markera och kopiera vid behov.</p>
+</div>
+<div class="actions"><button class="btn-link" id="slots_close" type="button">Stäng</button></div>
+</div>
+</div>
+<!-- =========================================================
+     VERKTYG: ÅTERKÖP PRIVATSPAR/PRIVATPENSION - HTML
+========================================================= -->
+<div aria-labelledby="buyback_title" aria-modal="true" class="backdrop" id="buyback_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(980px,96vw)">
+<header><h2 id="buyback_title" style="margin:0;font-size:15px">Återköp Privatspar/Privatpension</h2></header>
+<div class="body">
+<div class="muted" style="margin-bottom:10px">Resultatet är en uppskattning baserad på antagna värden och utgör ingen exakt prognos eller garanti för framtida utfall.</div>
+<div style="display:grid;grid-template-columns:1.02fr 0.98fr;gap:16px;align-items:start">
+<div style="display:grid;gap:12px">
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div class="row" style="grid-template-columns:1fr;gap:0">
+<label for="buyback_product" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Sparform hos Folksam</label>
+<select id="buyback_product" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">
+<option value="">(Välj)</option>
+<option value="privatspar">Privatspar</option>
+<option value="privatpension">Privatpension</option>
+</select>
+</div>
+<div class="muted" style="margin-top:8px">Verktyget räknar år 1–10. Beräkningen visar hur ett återköp kan se ut år 1–10. Från och med år 10 finns två fria uttag. I beräkningen antas att hela kapitalet tas ut.</div>
+</div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div style="font-weight:700;margin-bottom:10px">Indata</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end">
+<div>
+<label for="buyback_monthly" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Månadssparande</label>
+<input id="buyback_monthly" type="number" min="0" step="100" inputmode="decimal" value="1000" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+<div>
+<label for="buyback_lump" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Engångsinsättning</label>
+<input id="buyback_lump" type="number" min="0" step="1000" inputmode="decimal" value="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-top:12px">
+<div>
+<label for="buyback_rate" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Förväntad avkastning (%)</label>
+<input id="buyback_rate" type="number" min="0" step="0.1" inputmode="decimal" value="5.5" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+<div>
+<label for="buyback_fixed" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Fast avgift (kr/år)</label>
+<input id="buyback_fixed" type="number" min="0" step="10" inputmode="decimal" value="288" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-top:12px">
+<div>
+<label for="buyback_variable" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Rörlig avgift (%)</label>
+<input id="buyback_variable" type="number" min="0" step="0.01" inputmode="decimal" value="0.8" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+<div>
+<label for="buyback_premium" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Premieavgift (%)</label>
+<input id="buyback_premium" type="number" min="0" step="0.01" inputmode="decimal" value="1" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"/>
+</div>
+</div>
+</div>
+<div id="buyback_warn" class="muted" style="display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px">Alla värden måste vara 0 eller högre.</div>
+</div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div style="font-weight:700;margin-bottom:10px">Återköp år 1–10</div>
+<div style="overflow:auto;max-height:520px">
+<table>
+<thead>
+<tr><th>Insatt kapital</th><th>Värdeökning</th></tr>
+</thead>
+<tbody id="buyback_tbody"></tbody>
+</table>
+</div>
+<div id="buyback_info" class="muted" style="margin-top:10px">Välj sparform för att se resultat.</div>
+</div>
+</div>
+</div>
+<div class="actions"><button class="btn-link" id="buyback_clear" type="button">Rensa</button><button class="btn-link" id="buyback_close" type="button">Stäng</button></div>
+</div>
+</div>
+
+<!-- =========================================================
+     VERKTYG: RISK - HTML
+========================================================= -->
+<div aria-labelledby="risk_tool_title" aria-modal="true" class="backdrop" id="risk_tool_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(620px,94vw)">
+<header><h2 id="risk_tool_title" style="margin:0;font-size:15px">Risk</h2></header>
+<div class="body">
+<div style="display:grid;gap:12px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end">
+<div>
+<label for="risk_tool_initial" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Utgångsläge</label>
+<select id="risk_tool_initial" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">
+<option value="">(välj)</option>
+<option>låg risk</option>
+<option>medelrisk</option>
+<option>hög risk</option>
+</select>
+</div>
+<div>
+<label for="risk_tool_recommendation" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Rekommendation</label>
+<select id="risk_tool_recommendation" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">
+<option value="">(välj)</option>
+<option>låg risk</option>
+<option>medelrisk</option>
+<option>hög risk</option>
+</select>
+</div>
+</div>
+<div id="risk_tool_warn" class="muted" style="display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px">Välj både Utgångsläge och Rekommendation.</div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+<div class="muted" style="margin-bottom:4px">Förhandsvisning</div>
+<div id="risk_tool_preview" style="white-space:pre-wrap">—</div>
+</div>
+</div>
+</div>
+<div class="actions"><button class="btn-link" id="risk_tool_clear" type="button">Rensa</button><button class="btn-link" id="risk_tool_copy" type="button">Kopiera</button><button class="btn-link" id="risk_tool_close" type="button">Stäng</button></div>
+</div>
+</div>
+
+
+<!-- =========================================================
+     VERKTYG: AVKASTNING - HTML
+     Tre inmatningsfält och fyra resultat. Beräkningen sker direkt.
+========================================================= -->
+<div aria-labelledby="return_title" aria-modal="true" class="backdrop" id="return_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(700px,94vw)">
+<header><h2 id="return_title" style="margin:0;font-size:15px">Avkastning</h2></header>
+<div class="body">
+<div style="display:grid;gap:12px">
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end">
+<div><label for="return_start" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Startvärde</label><input id="return_start" type="number" min="0" step="1" inputmode="decimal" placeholder="t.ex. 100" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"></div>
+<div><label for="return_end" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Slutvärde</label><input id="return_end" type="number" min="0" step="1" inputmode="decimal" placeholder="t.ex. 309" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"></div>
+<div><label for="return_years" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Antal år</label><input id="return_years" type="number" min="0" step="0.1" inputmode="decimal" placeholder="t.ex. 10" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"></div>
+</div>
+<div id="return_warn" class="muted" style="display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px">Startvärde, slutvärde och antal år måste vara större än 0.</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px"><div class="muted" style="margin-bottom:4px">Total avkastning</div><div id="return_total" style="font-size:22px;font-weight:700;line-height:1.2">—</div></div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px"><div class="muted" style="margin-bottom:4px">Årlig snittavkastning (CAGR)</div><div id="return_cagr" style="font-size:22px;font-weight:700;line-height:1.2">—</div></div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px"><div class="muted" style="margin-bottom:4px">Värdeökning</div><div id="return_gain" style="font-size:22px;font-weight:700;line-height:1.2">—</div></div>
+<div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px"><div class="muted" style="margin-bottom:4px">Värdefaktor</div><div id="return_factor" style="font-size:22px;font-weight:700;line-height:1.2">—</div></div>
+</div>
+</div>
+</div>
+<div class="actions"><button class="btn-link" id="return_clear" type="button">Rensa</button><button class="btn-link" id="return_close" type="button">Stäng</button></div>
+</div>
+</div>
+<!-- =========================================================
+     VERKTYG: ÅTERKOPPLING - HTML
+     Enkelt betatestformulär som skapar en kopierbar text.
+     Skickar inget mejl och sparar inget lokalt.
+========================================================= -->
+<div aria-labelledby="feedback_title" aria-modal="true" class="backdrop" id="feedback_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(760px,94vw)">
+<header><h2 id="feedback_title" style="margin:0;font-size:15px">Återkoppling</h2></header>
+<div class="body">
+<div style="display:grid;gap:12px">
+<div class="muted">Fyll i kort återkoppling och klicka på <strong>Kopiera återkoppling</strong>. Klistra sedan in texten i ett mejl eller Teams-meddelande.</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end">
+<div><label for="feedback_area" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Fönster/del</label><select id="feedback_area" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"><option value="">(välj)</option><option>Målsättning</option><option>Uppfyllda behov</option><option>Övriga noteringar</option><option>Verktyg</option><option>Fusklappar</option><option>Allmänt</option></select></div>
+<div><label for="feedback_category" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Kategori</label><select id="feedback_category" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"><option value="">(välj)</option><option>Bugg</option><option>Text/språk</option><option>Layout/utseende</option><option>Otydligt beteende</option><option>Förbättringsförslag</option><option>Annat</option></select></div>
+</div>
+<div id="feedback_category_help" class="muted" style="font-size:12px;line-height:1.4">Välj den kategori som passar bäst. Det viktigaste är själva återkopplingen, inte att kategorin blir perfekt.</div>
+<div><label for="feedback_text" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Återkoppling</label><textarea id="feedback_text" rows="6" style="width:100%;resize:vertical;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"></textarea></div>
+<div id="feedback_warn" class="muted" style="display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px">Fyll i Fönster/del, Kategori och Återkoppling.</div>
+</div>
+</div>
+<div class="actions"><button class="btn-link" id="feedback_clear" type="button">Rensa</button><button class="btn-link" id="feedback_copy" type="button">Kopiera återkoppling</button><button class="btn-link" id="feedback_close" type="button">Stäng</button></div>
+</div>
+</div>
+
+<!-- Kundavisering modal -->
+<div aria-labelledby="kundavisering_title" aria-modal="true" class="backdrop" id="kundavisering_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(760px,94vw)">
+<header><h2 id="kundavisering_title" style="margin:0;font-size:15px">Kundavisering</h2></header>
+<div class="body">
+<div style="display:grid;gap:12px">
+<div class="kundavisering-grid">
+<div class="kundavisering-field"><label for="kundavisering_template">Mall</label><select id="kundavisering_template"><option value="noanswer">Kunden svarade inte</option><option value="today">Påminnelse om dagens rådgivning</option></select></div>
+<div class="kundavisering-field"><label for="kundavisering_name">Kundens förnamn</label><input id="kundavisering_name" type="text" autocomplete="off" placeholder="Förnamn" /></div>
+<div class="kundavisering-field" id="kundavisering_reason_wrap"><label for="kundavisering_reason">Anledning</label><select id="kundavisering_reason"><option value="booked">Bokad rådgivning</option><option value="newtime">Boka en ny tid</option><option value="transfer">Hjälp med flytt av tjänstepension</option><option value="continue">Fortsätta med vår rådgivning</option><option value="other">Annat</option></select></div>
+<div class="kundavisering-field" id="kundavisering_other_wrap" style="display:none"><label for="kundavisering_other">Annan anledning</label><input id="kundavisering_other" type="text" autocomplete="off" placeholder="Skriv varför du ringde" /></div>
+<div class="kundavisering-field" id="kundavisering_time_wrap" style="display:none"><label for="kundavisering_time">Klockslag</label><input id="kundavisering_time" type="time" /></div>
+<div class="kundavisering-field" id="kundavisering_meeting_wrap" style="display:none"><label for="kundavisering_meeting">Mötesform</label><select id="kundavisering_meeting"><option value="call">Jag ringer upp kunden</option><option value="teams">Kunden ansluter via Teams</option></select></div>
+</div>
+<div id="kundavisering_warn" class="muted" style="display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px"></div>
+<div><div class="muted" style="margin-bottom:6px">Förhandsvisning</div><div class="kundavisering-preview" id="kundavisering_preview"></div></div>
+</div>
+</div>
+<div class="actions"><button class="btn-link" id="kundavisering_clear" type="button">Rensa</button><button class="btn-link" id="kundavisering_copy" type="button">Kopiera text</button><button class="btn-link" id="kundavisering_close" type="button">Stäng</button></div>
+</div>
+</div>
+<!-- Uppgifter modal -->
+<div aria-labelledby="tasks_title" aria-modal="true" class="backdrop" id="tasks_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(760px,94vw)">
+<header><h2 id="tasks_title" style="margin:0;font-size:15px">Uppgifter</h2></header>
+<div class="body">
+<textarea class="tasks-area" id="tasks_text" placeholder="Skriv uppgifter här…"></textarea>
+<select class="tasks-select" id="tasks_select">
+<option value="">-- välj --</option>
+<option value="Följ upp flytt av tjänstepension">Följ upp flytt av tjänstepension</option>
+<option value="Skicka blanketter, E-post">Skicka blanketter, E-post</option>
+<option value="Skicka blanketter, singelpost">Skicka blanketter, singelpost</option>
+<option value="Skicka info om">Skicka info om</option>
+<option value="Ta reda på">Ta reda på</option>
+</select>
+<button class="tool-trigger" id="tasks_edit_toggle" type="button">Redigera menyval</button>
+<div class="tasks-edit-wrap" id="tasks_edit_wrap">
+<div id="tasks_edit_rows"></div>
+<div class="tasks-edit-actions">
+<button class="tool-trigger" id="tasks_edit_add" type="button">Lägg till ny rad</button>
+<button class="tool-trigger" id="tasks_edit_save" type="button">Spara</button>
+<button class="tool-trigger" id="tasks_edit_cancel" type="button">Avbryt</button>
+</div>
+</div>
+</div>
+<div class="actions"><button class="btn-link" id="tasks_copy_all" type="button">Kopiera allt</button><button class="btn-link" id="tasks_close" type="button">Stäng</button></div>
+</div>
+</div>
+<!-- Återköpstrappa modal -->
+<div aria-labelledby="fees_title" aria-modal="true" class="backdrop" id="fees_backdrop" role="dialog" style="display:none">
+<div class="modal" style="width:min(560px,94vw)">
+<header><h2 id="fees_title" style="margin:0;font-size:15px">Återköpstrappa</h2></header>
+<div class="body">
+<table>
+<thead>
+<tr><th>År</th><th>Avgift</th></tr>
+</thead>
+<tbody>
+<tr><td>År 1</td><td>Inga återköp</td></tr>
+<tr><td>År 2</td><td>3% + 250 kr</td></tr>
+<tr><td>År 3</td><td>3% + 250 kr</td></tr>
+<tr><td>År 4</td><td>3% + 250 kr</td></tr>
+<tr><td>År 5</td><td>2% + 250 kr</td></tr>
+<tr><td>År 6</td><td>2% + 250 kr</td></tr>
+<tr><td>År 7</td><td>2% + 250 kr</td></tr>
+<tr><td>År 8</td><td>1% + 250 kr</td></tr>
+<tr><td>År 9</td><td>1% + 250 kr</td></tr>
+<tr><td>År 10</td><td>250 kr</td></tr>
+</tbody>
+</table>
+<p class="muted" style="margin-top:8px">Endast visning.</p>
+</div>
+<div class="actions"><button class="btn-link" id="fees_close" type="button">Stäng</button></div>
+</div>
+</div>
+<script>
+(function(){
+ const CHANGELOG = [
+ { ver:'2.3.0', date:'2026-10-12', items:[ 'Ändring - Målsättningskorten är färdigställda.' ] },
+ { ver:'2.2.302', date:'2026-10-12', items:[ 'Ändring - Målsättning: höjd livförsäkring visar måltext direkt efter angivna belopp.' ] },
+ { ver:'2.2.300', date:'2026-10-12', items:[ 'Ny Funktion - Målsättning: nytt alternativ för att höja en befintlig livförsäkring.' ] },
+ { ver:'2.2.297', date:'2026-10-12', items:[ 'Ny Funktion - Målsättning: alla målkort kan nu använda fritext och Andra mål – Förvalta är tillagt.' ] },
+ { ver:'2.2.295', date:'2026-10-12', items:[ 'Ny Funktion - Målsättning: nytt målkort för långsiktigt kapital med kapital, överskott och fritext.' ] },
+ { ver:'2.2.294', date:'2026-10-12', items:[ 'Ny Funktion - Målsättning: nytt målkort för att se över sparandet med Höja risk och Fritext.' ] },
+ { ver:'2.2.293', date:'2026-10-12', items:[ 'Ny Funktion - Målsättning: nytt fritextkort för Andra mål – Förverkliga.' ] },
+ { ver:'2.2.292', date:'2026-10-12', items:[ 'Ändring - Målsättning: alla målkort visar nu sitt textalternativ som radioknapp.' ] },
+ { ver:'2.2.291', date:'2026-10-12', items:[ 'Ändring - Målsättning: gåvomålet använder nu målsumma och spartid.' ] },
+ { ver:'2.2.289', date:'2026-10-11', items:[ 'Ändring - Målsättning: inmatningsfält ligger närmare etiketterna och målbelopp visas före spartid.' ] },
+ { ver:'2.2.288', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: nytt boendemål med spartid och kontantinsats.' ] },
+ { ver:'2.2.287', date:'2026-10-11', items:[ 'Ändring - Målsättning: resekortet visar nu underrubriken Göra en resa.' ] },
+ { ver:'2.2.286', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: nytt resemål med spartid och målsumma.' ] },
+ { ver:'2.2.285', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: nytt fritextkort för Andra mål – Gåva.' ] },
+ { ver:'2.2.284', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: nytt målkort för gåva till barn eller barnbarn.' ] },
+ { ver:'2.2.282', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: fritextkort för tidigare pension och Andra mål – Pension.' ] },
+ { ver:'2.2.281', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: nytt fritextkort för Andra mål – Trygghet.' ] },
+ { ver:'2.2.280', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: nytt målkort för tryggad familjeekonomi med livförsäkringsbelopp.' ] },
+ { ver:'2.2.279', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: nytt fritextkort för ekonomisk trygghet.' ] },
+ { ver:'2.2.278', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: alla huvudområden kan nu visa sina målval.' ] },
+ { ver:'2.2.277', date:'2026-10-11', items:[ 'Ny Funktion - Målsättning: huvudområdesflikarna kan nu visa antal valda mål.' ] },
+ { ver:'2.2.276', date:'2026-10-11', items:[ 'Ändring - Målsättning: symbolerna för Gåva och Förvalta följer nu förlagan bättre.' ] },
+ { ver:'2.2.275', date:'2026-10-10', items:[ 'Ändring - Målsättning: huvudområdena har nu symboler och ett tydligare flikutseende.' ] },
+ { ver:'2.2.274', date:'2026-10-10', items:[ 'Ändring - Målsättning: pensionsmålkorten visas nu direkt under målvalen.' ] },
+ { ver:'2.2.272', date:'2026-10-09', items:[ 'Ändring - Målsättning: målval och nya målkort har nu blå accentkanter.' ] },
+ { ver:'2.2.267', date:'2026-10-09', items:[ 'Ändring - Målsättning: tjänstepensionsmålets fasta text visas nu direkt med en enda kopieringsknapp.' ] },
+ { ver:'2.2.266', date:'2026-10-08', items:[ 'Ny Funktion - Målsättning: nytt målkort för att se över tjänstepensionen.' ] },
+ { ver:'2.2.265', date:'2026-10-08', items:[ 'Ändring - Målsättning: pensionsmålets sammanställda text uppdateras nu automatiskt.' ] },
+ { ver:'2.2.264', date:'2026-10-08', items:[ 'Ny Funktion - Målsättning: det första pensionsmålet visar nu ett eget målkort med sammanställd text.' ] },
+ { ver:'2.2.263', date:'2026-10-08', items:[ 'Ny Funktion - Målsättning: nytt navigationsskal med huvudområden och målval för Pension.' ] },
+ { ver:'2.2.262', date:'2026-10-08', items:[ 'Ändring - Gå i pension: måltexten skiljer nu på framtida slutlön och dagens jämförelsevärde.' ] },
+ { ver:'2.2.261', date:'2026-10-08', items:[ 'Ändring - Gå i pension: önskad pension är nu förinställd på 100 procent av inkomsten.' ] },
+ { ver:'2.2.260', date:'2026-10-08', items:[ 'Ändring - Gå i pension: valet mellan procent och belopp visas nu som radioknappar.' ] },
+ { ver:'2.2.259', date:'2026-10-08', items:[ 'Ändring - Gå i pension: önskad pension kan nu anges som procent eller belopp.' ] },
+ { ver:'2.2.258', date:'2026-10-07', items:[ 'Ändring - Premiepension: nya val för Allmänt råd och Inget råd.' ] },
+ { ver:'2.2.257', date:'2026-10-05', items:[ 'Ändring - Fusklappar: Skattexempel visas nu som en tydligare matris.' ] },
+ { ver:'2.2.256', date:'2026-10-05', items:[ 'Ändring - Fusklappar: Skattexempel använder nu tidigaste uttagsålder och riktålder.' ] },
+ { ver:'2.2.255', date:'2026-10-04', items:[ 'Sparbeslut: fälten för Annan sparnivå ligger nu samlade på samma rad.' ] },
+ { ver:'2.2.254', date:'2026-10-04', items:[ 'Sparbeslut: Annan sparnivå skiljer nu på nyspar och höjning.' ] },
+ { ver:'2.2.253', date:'2026-10-04', items:[ 'Förmånstagarförordnande: komplett val uppdaterar nu Sammanställd text automatiskt.' ] },
+ { ver:'2.2.252', date:'2026-10-04', items:[ 'Övriga noteringar: Sammanställd text följer nu det vanliga sidflödet.' ] },
+ { ver:'2.2.251', date:'2026-10-04', items:[ 'Uppdatering: uppdateringsfönstret visar nu hur du öppnar versionshistoriken.' ] },
+ { ver:'2.2.247', date:'2026-10-04', items:[ 'Uppfyllda behov: Tjänstepension och Sparbeslut uppdaterar nu sammanställd text automatiskt.' ] },
+ { ver:'2.2.243', date:'2026-10-04', items:[ 'Uppfyllda behov: Tjänstepension och Sparbeslut har nu egna tillägg och tydligare sammanställningar.' ] },
+ { ver:'2.2.241', date:'2026-10-04', items:[ 'Uppfyllda behov: Tjänstepension och Sparbeslut har nu separata sammanställningar.' ] },
+ { ver:'2.2.239', date:'2026-10-04', items:[ 'Rensa allt: Stöd1 hämtar nu automatiskt en ny publicerad version.' ] },
+ { ver:'2.2.237', date:'2026-09-25', items:[ 'Tjänstepension: PA16:s särskilda information ingår nu automatiskt vid omval.' ] },  
+ { ver:'2.2.234', date:'2026-09-25', items:[ 'Tjänstepension: avtalsområde återställs när alla val tas bort.' ] },
+ { ver:'2.2.229', date:'2026-09-24', items:[ 'Sparbeslut: tydligare orsaker för annan sparnivå och avvaktan.' ] },
+ { ver:'2.2.227', date:'2026-09-24', items:[ 'Tjänstepension: nya orsaker för att avvakta med beslut.' ] },
+ { ver:'2.2.226', date:'2026-09-24', items:[ 'Övriga noteringar: nytt val för PA-16 - särskild information.' ] },
+ { ver:'2.2.224', date:'2026-09-24', items:[ 'Uppfyllda behov: nytt Risk-kort längst ner bland korten.' ] },
+ { ver:'2.2.220', date:'2026-09-24', items:[ 'Annat mål hittats under rådgivningen ligger nu under Sparbeslut och kopierar endast texten.' ] },
+ { ver:'2.2.217', date:'2026-09-24', items:[ 'Sparbeslut: Avslutar depå kan nu väljas under Sparande genomförs.' ] },
+ { ver:'2.2.216', date:'2026-09-23', items:[ 'Gå i pension: pensionsmålet anges nu direkt som procent av inkomsten.' ] },
+ { ver:'2.2.214', date:'2026-09-23', items:[ 'Sparbeslut: nytt avrådandealternativ för hög kunskap och egen förvaltning.' ] },
+ { ver:'2.2.213', date:'2026-09-23', items:[ 'Sparbeslut: avrådan kan nu dokumenteras med en färdig orsak eller egen fritext.' ] },
+ { ver:'2.2.211', date:'2026-09-23', items:[ 'Tjänstepension: välj om ändringar genomförs, beslut avvaktas eller inga ändringar behövs.' ] },
+ { ver:'2.2.210', date:'2026-09-23', items:[ 'Sparbeslut: välj avrådan på grund av begränsad buffert eller lån med hög ränta.' ] },
+ { ver:'2.2.207', date:'2026-09-23', items:[ 'Förmånstagarförordnande: dokumentera om förordnandet ska ändras och välj vid behov hur blanketten skickas.' ] },
+ { ver:'2.2.206', date:'2026-09-15', items:[ 'Tjänstepension: ITP har nu samma val och dokumentation som AKAP-KR/KAP-KL och PA16.' ] },
+ { ver:'2.2.204', date:'2026-09-15', items:[ 'Sparbeslut: välj buffert med standardtext eller ett tydligt mål.' ] },
+ { ver:'2.2.203', date:'2026-09-15', items:[ 'Sparbeslut: buffert kan nu dokumenteras med eller utan ett konkret buffertmål.' ] },
+ { ver:'2.2.201', date:'2026-09-10', items:[ 'Uppfyllda behov: nya knappar för att kopiera tjänstepension och övriga sparbehov separat.' ] },
+ { ver:'2.2.195', date:'2026-09-10', items:[ 'Sparbeslut: du kan nu dokumentera genomfört sparande, avvaktan eller avrådan i ett samlat kort.' ] },
+ { ver:'2.2.192', date:'2026-09-10', items:[ 'Uppfyllda behov: nytt kort för att dokumentera tjänstepension.' ] },
+ { ver:'2.2.191', date:'2026-09-09', items:[ 'Avvaktar med sparande: du kan nu välja en frivillig standardtext för målspar, pensionsspar eller tjänstepension.' ] },
+ { ver:'2.2.188', date:'2026-09-09', items:[ 'Uppfyllda behov: nytt separat kort för att dokumentera när ett annat mål hittats under rådgivningen.' ] },
+ { ver:'2.2.185', date:'2026-09-08', items:[ 'Uppfyllda behov: Om annat mål kan nu även dokumentera när kunden avvaktar med sparandet.' ] },
+ { ver:'2.2.184', date:'2026-09-08', items:[ 'Annan sparnivå: du kan nu ange både månadssparande och engångsinsättning.' ] }
+ ];
+ var chip=document.getElementById('ver_chip');
+ var bd=document.getElementById('hist_backdrop');
+ var list=document.getElementById('hist_list');
+ var btnClose=document.getElementById('hist_close');
+ function render(){ list.innerHTML = CHANGELOG.map(r=>`<section style="border:1px solid var(--line);border-radius:10px;margin:8px 0"><header style="padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700">v${r.ver} · ${r.date}</header><div style="padding:10px 12px">${(r.items||[]).length?`<ul style="margin:0 0 0 16px">${r.items.map(i=>`<li>${i}</li>`).join('')}</ul>`:'<em>Inga poster</em>'}</div></section>`).join(''); }
+ function open(){ if(window.stod1CloseAllModals) window.stod1CloseAllModals('hist_backdrop'); render(); bd.style.display='block'; }
+ function close(){ bd.style.display='none'; }
+ if(chip) chip.addEventListener('click', open);
+ if(btnClose) btnClose.addEventListener('click', close);
+ if(bd) bd.addEventListener('click', e=>{ if(e.target===bd) close(); });
+ document.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
+})();
+</script><script>
+(function(){
+ const btnAll=document.getElementById('btn_clear_all');
+ const btnPanel=document.getElementById('btn_clear_panel');
+ if(!btnAll && !btnPanel) return;
+ const STORAGE_KEYS=[
+ 'othernotes.store.v1','othernotes.notes.v1','othernotes.notes_extra.v1','othernotes.fields.v1','othernotes.active.v1','othernotes.collapse.v1','othernotes.order.v1','othernotes.order.default.v1.container',
+ 'sparande.store.v1','sparande.notes.v1','sparande.notes_tp.v1','sparande.notes_extra.v1','sparande.fields.v1','sparande.active.v1','sparande.collapse.v1','sparande.order.v1','sparande.order.default.v1.container',
+ 'goalsetting.store.v1','goalsetting.notes.v1','goalsetting.notes_extra.v1','goalsetting.fields.v1','goalsetting.active.v1','goalsetting.rikt.year','goalsetting.beta.tab.v1',
+ 'mb.forv.text.v1','mb.forvalta.text.v1','stod1.tasks.v1','stod1.tasks.text.v1','stod1.tasks.select.options.v1'
+ ];
+ const GOAL_SRC='./Goalsetting.html';
+ const NOTES_SRC='./othernotes.html';
+ const SAVINGS_SRC='./savings.html';
+ const UPDATE_MARKER='stod1.updated.v1';
+ const updateBd=document.getElementById('update_backdrop');
+ const updateClose=document.getElementById('update_close');
+ function closeUpdate(){ if(updateBd) updateBd.style.display='none'; }
+ if(updateClose) updateClose.addEventListener('click', closeUpdate);
+ if(updateBd) updateBd.addEventListener('click', function(e){ if(e.target===updateBd) closeUpdate(); });
+ try{
+  if(sessionStorage.getItem(UPDATE_MARKER)==='1'){
+   sessionStorage.removeItem(UPDATE_MARKER);
+   if(window.stod1CloseAllModals) window.stod1CloseAllModals('update_backdrop');
+   if(updateBd) updateBd.style.display='block';
+  }
+ }catch(e){}
+ const PANEL_CONFIG={
+  goal:{ label:'Målsättning', frameId:'frame-goal', src:GOAL_SRC, hash:'#reset-panel-' },
+  notes:{ label:'Övriga noteringar', frameId:'frame-notes', src:NOTES_SRC, hash:'#reset-panel-' },
+  savings:{ label:'Uppfyllda behov', frameId:'frame-savings', src:SAVINGS_SRC, hash:'#reset-all-' }
+ };
+ const PANEL_KEYS={
+  goal:['goalsetting.store.v1','goalsetting.notes.v1','goalsetting.notes_extra.v1','goalsetting.fields.v1','goalsetting.active.v1','goalsetting.rikt.year','goalsetting.beta.tab.v1','mb.forv.text.v1','mb.forvalta.text.v1'],
+  notes:['othernotes.store.v1','othernotes.notes.v1','othernotes.notes_extra.v1','othernotes.fields.v1','othernotes.active.v1','othernotes.collapse.v1','othernotes.order.v1','othernotes.order.default.v1.container'],
+  savings:['sparande.store.v1','sparande.notes.v1','sparande.notes_tp.v1','sparande.notes_extra.v1','sparande.fields.v1','sparande.active.v1','sparande.collapse.v1','sparande.order.v1','sparande.order.default.v1.container']
+ };
+ function removeKeys(list){ (list||[]).forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} }); }
+ function resetFrame(id, src, hashPrefix){
+  try{
+   var frame=document.getElementById(id);
+   if(frame) frame.src = src + hashPrefix + Date.now();
+  }catch(e){}
+ }
+ function checkPublishedVersion(){
+  try{
+   var checkUrl=new URL(window.location.href);
+   checkUrl.searchParams.set('stod1-version-check', Date.now());
+   fetch(checkUrl.toString(), { cache:'no-store' }).then(function(response){
+    if(!response.ok) return '';
+    return response.text();
+   }).then(function(html){
+    var match=html.match(/const APP = \{ version: '([^']+)' \};/);
+    if(!match || match[1]===APP.version) return;
+    try{ sessionStorage.setItem(UPDATE_MARKER, '1'); }catch(e){}
+    var freshUrl=new URL(window.location.href);
+    freshUrl.searchParams.delete('stod1-version-check');
+    freshUrl.searchParams.set('v', match[1]);
+    window.location.replace(freshUrl.toString());
+   }).catch(function(){});
+  }catch(e){}
+ }
+ function getActiveTab(){
+  var active=document.querySelector('.tabs .tab.active[data-tab]');
+  return active ? active.dataset.tab : 'goal';
+ }
+ function flash(btn, label){
+  if(!btn) return;
+  const prev=btn.textContent;
+  btn.textContent=label || 'Rensat';
+  btn.disabled=true;
+  setTimeout(function(){ btn.textContent=prev; btn.disabled=false; }, 1200);
+ }
+ if(btnAll){
+  btnAll.addEventListener('click', function(){
+   if(!confirm('Rensa allt i Stöd1? Detta tömmer sparade uppgifter i alla kort och alla flikar.')) return;
+   removeKeys(STORAGE_KEYS);
+   resetFrame('frame-goal', GOAL_SRC, '#reset-all-');
+   resetFrame('frame-notes', NOTES_SRC, '#reset-all-');
+   resetFrame('frame-savings', SAVINGS_SRC, '#reset-all-');
+   flash(btnAll, 'Rensat');
+   checkPublishedVersion();
+  });
+ }
+ if(btnPanel){
+  btnPanel.addEventListener('click', function(){
+   var tab=getActiveTab();
+   var panel=PANEL_CONFIG[tab] || PANEL_CONFIG.goal;
+   if(!confirm('Rensa bara '+panel.label+'?')) return;
+   removeKeys(PANEL_KEYS[tab] || []);
+   resetFrame(panel.frameId, panel.src, panel.hash);
+   flash(btnPanel, 'Fönster rensat');
+  });
+ }
+})();
+</script><!-- Skattexempel modal -->
+<div aria-labelledby="skattexempel_title" aria-modal="true" class="backdrop" id="skattexempel_backdrop" role="dialog" style="display:none">
+ <div class="modal" style="width:min(700px,94vw)">
+  <header><h2 id="skattexempel_title" style="margin:0;font-size:15px">Skattexempel</h2></header>
+  <div class="body">
+   <table>
+    <thead>
+     <tr>
+      <th>Situation</th>
+      <th>Tidigaste uttagsålder</th>
+      <th>Riktålder</th>
+     </tr>
+    </thead>
+    <tbody>
+     <tr>
+      <td>Ta ut hel pension och sluta arbeta</td>
+      <td>18 000 i pension<br>13 100 kvar efter skatt<br>Skatt: 27 %</td>
+      <td>18 000 i pension<br>14 900 kvar efter skatt<br>Skatt: 17 %</td>
+     </tr>
+     <tr>
+      <td>Fortsätta arbeta och inte ta ut pension</td>
+      <td>18 000 i lön<br>14 900 kvar efter skatt<br>Skatt: 17 %</td>
+      <td>18 000 i lön<br>16 600 kvar efter skatt<br>Skatt: 8 %</td>
+     </tr>
+    </tbody>
+   </table>
+  </div>
+  <div class="actions">
+   <button class="btn-link" id="skattexempel_close" type="button">Stäng</button>
+  </div>
+ </div>
+</div>
+<script>
+(function(){
+ function q(id){ return document.getElementById(id); }
+ function copyText(text){
+ return (async function(){
+ try{ await navigator.clipboard.writeText(text); }
+ catch(_){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(__){} document.body.removeChild(ta); }
+ })();
+ }
+ const tabs = document.querySelectorAll('.tabs .tab[data-tab]');
+ function show(tab){
+ const pGoal=q('p-goal'), pSavings=q('p-savings'), pNotes=q('p-notes');
+ if(pGoal) pGoal.classList.toggle('active', tab==='goal');
+  if(pSavings) pSavings.classList.toggle('active', tab==='savings');
+ if(pNotes) pNotes.classList.toggle('active', tab==='notes');
+ tabs.forEach(function(b){ const is=b.dataset.tab===tab; b.classList.toggle('active',is); b.setAttribute('aria-selected', is ? 'true' : 'false'); });
+ }
+ tabs.forEach(function(b){ b.addEventListener('click', function(){ show(b.dataset.tab); }); });
+ show('goal');
+ const dropdowns = [
+ { trigger:q('btn_tools'), menu:q('tools_menu') },
+ { trigger:q('btn_tools2'), menu:q('tools2_menu') }
+ ].filter(function(x){ return x.trigger && x.menu; });
+ function closeAllDropdowns(exceptMenu){
+ dropdowns.forEach(function(dd){
+ if(exceptMenu && dd.menu===exceptMenu) return;
+ dd.menu.classList.remove('open');
+ dd.trigger.setAttribute('aria-expanded','false');
+ });
+ }
+ dropdowns.forEach(function(dd){
+ dd.trigger.addEventListener('click', function(e){
+ e.stopPropagation();
+ const willOpen = !dd.menu.classList.contains('open');
+ closeAllDropdowns(willOpen ? dd.menu : null);
+ dd.menu.classList.toggle('open', willOpen);
+ dd.trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+ if(willOpen){ const first=dd.menu.querySelector('button'); if(first) first.focus(); }
+ });
+ });
+ document.addEventListener('click', function(e){ if(!dropdowns.some(function(dd){ return dd.trigger.contains(e.target) || dd.menu.contains(e.target); })) closeAllDropdowns(); });
+ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeAllDropdowns(); });
+ function bindModal(backdropId, closeIds){
+ const bd=q(backdropId);
+ if(!bd || bd.dataset.bound==='1') return;
+ bd.dataset.bound='1';
+ let pressOnBackdrop=false;
+ bd.addEventListener('mousedown', function(e){ pressOnBackdrop = (e.target===bd); }, true);
+ bd.addEventListener('click', function(e){ if(e.target===bd && pressOnBackdrop) bd.style.display='none'; pressOnBackdrop=false; }, true);
+ (closeIds || []).forEach(function(id){ const btn=q(id); if(btn) btn.addEventListener('click', function(){ bd.style.display='none'; }); });
+ document.addEventListener('keydown', function(e){ if(e.key==='Escape' && bd.style.display!=='none') bd.style.display='none'; });
+ }
+ function closeAllModals(exceptId){
+ document.querySelectorAll('.backdrop').forEach(function(bd){
+ if(exceptId && bd.id===exceptId) return;
+ bd.style.display='none';
+ });
+ }
+ window.stod1CloseAllModals = closeAllModals;
+ // =========================================================
+ // VERKTYG - GEMENSAM GRUND
+ // Här finns gemensamma funktioner för menyer, modaler,
+ // kopiering och stängning. Själva verktygen ligger under
+ // tydliga rubriker längre ned i samma script.
+ // =========================================================
+ function openModal(backdropId, focusId){
+ closeAllDropdowns();
+ closeAllModals(backdropId);
+ const bd=q(backdropId); if(!bd) return;
+ bd.style.display='block';
+ if(focusId){ const el=q(focusId); if(el) el.focus(); }
+ }
+ // =========================================================
+ // VERKTYG: RÄNTA PÅ RÄNTA - MODUL
+ // Syfte: räknar sparfas och utbetalningsfas med avgifter.
+ //
+ // Snabbguide för framtida ändringar:
+ // 1. Ändra standardvärden under PRESETS.
+ // 2. Ändra beräkning endast i BERÄKNING-sektionen.
+ // 3. Ändra vad som visas i RESULTATVISNING/compute().
+ // =========================================================
+ const RPR_TOOL = {
+ id:'rpr', type:'verktyg', title:'Ränta på ränta', order:20, enabled:false,
+ init:function(){
+ const button=q('module-rpr'), product=q('rpr_product'), productInfo=q('rpr_product_info'), monthly=q('rpr_monthly'), years=q('rpr_years'), lump=q('rpr_lump'), rate=q('rpr_rate'), fixed=q('rpr_fixed'), variable=q('rpr_variable'), premium=q('rpr_premium'), tax=q('rpr_tax'), payoutYears=q('rpr_payout_years'), payoutRate=q('rpr_payout_rate'), warn=q('rpr_warn'), outInvested=q('rpr_out_invested'), labelValueSave=q('rpr_label_value_save'), outValueSave=q('rpr_out_value_save'), outGrowthSave=q('rpr_out_growth_save'), labelValueTotal=q('rpr_label_value_total'), outValueTotal=q('rpr_out_value_total'), outGrowthTotal=q('rpr_out_growth_total'), outMonthly=q('rpr_out_monthly'), info=q('rpr_info'), clear=q('rpr_clear');
+ if(!button || !product || !monthly || !years || !lump || !rate || !fixed || !variable || !premium || !tax || !payoutYears || !payoutRate || !warn || !outInvested || !labelValueSave || !outValueSave || !outGrowthSave || !labelValueTotal || !outValueTotal || !outGrowthTotal || !outMonthly || !info || !clear) return;
+ bindModal('rpr_backdrop',['rpr_close']);
+ // ---------------------------------------------------------
+ // RÄNTA PÅ RÄNTA: PRESETS
+ // Här ändrar man standardvärden för sparformer.
+ // ---------------------------------------------------------
+ const PRESETS = {
+ privatspar: { label:'Privatspar', fields:{ monthly:1000, years:15, fixed:288, variable:0.8, premium:1, tax:1.065, rate:5.5, payoutRate:5.5 }, info:'Premieavgift 1 % på insättningar. Engångsinsättning från 1 000 000 kr får 0 % premieavgift.' },
+ privatpension: { label:'Privatpension', fields:{ monthly:1000, years:15, fixed:250, variable:0.5, premium:0, tax:1.065, rate:5.5, payoutRate:5.5 }, info:'' },
+ privatspar_fond: { label:'Privatspar Fond', fields:{ monthly:1000, years:15, fixed:120, variable:0.4, premium:0, tax:1.065, rate:9.0, payoutRate:9.0 }, info:'' },
+ medlemspar_fond: { label:'Medlemspar Fond', fields:{ monthly:1000, years:15, fixed:120, variable:0.3, premium:0, tax:1.065, rate:9.0, payoutRate:9.0 }, info:'' }
+ };
+ // ---------------------------------------------------------
+ // RÄNTA PÅ RÄNTA: KOPPLING MELLAN PRESETS OCH FÄLT
+ // ---------------------------------------------------------
+ const PRESET_FIELD_MAP = { monthly: monthly, years: years, fixed: fixed, variable: variable, premium: premium, tax: tax, rate: rate, payoutRate: payoutRate };
+ let currentPreset=''; let suppressPresetTracking=false;
+ // ---------------------------------------------------------
+ // RÄNTA PÅ RÄNTA: FORMATERING OCH HJÄLPFUNKTIONER
+ // ---------------------------------------------------------
+ function parseSv(v){ return Number(String(v||'').replace(',','.')); }
+ function setNumericValue(el, value){ if(el) el.value=String(value); }
+ function roundDownHundred(n){ if(!isFinite(n)) return 0; return n<0 ? Math.ceil(n/100)*100 : Math.floor(n/100)*100; }
+ function fmtKr(n){ const rounded=roundDownHundred(n); return new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(rounded).replace(/\u00A0/g, ' ') + ' kr'; }
+ function fmtKrAllowNegative(n){ const rounded=roundDownHundred(n); return rounded<0 ? '−'+new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(Math.abs(rounded)).replace(/\u00A0/g,' ')+' kr' : new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(rounded).replace(/\u00A0/g,' ')+' kr'; }
+ function fmtYears(n){ return new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 2 }).format(n).replace(/\u00A0/g,' '); }
+ function annualToMonthlyFactor(annualPct, variablePct, taxPct){ const annualRate=annualPct/100, variableRate=variablePct/100, taxRate=taxPct/100; const annualFactor=Math.max(0, 1 + annualRate - variableRate - taxRate); return Math.pow(annualFactor, 1/12); }
+ function blankResults(withMonthlyOnly){ if(!withMonthlyOnly){ outInvested.textContent='—'; labelValueSave.textContent='Värde efter — år'; outValueSave.textContent='—'; outGrowthSave.textContent='—'; labelValueTotal.textContent='Värde efter — år'; outValueTotal.textContent='—'; outGrowthTotal.textContent='—'; info.textContent='Resultatet visas när spartid och sparbelopp har fyllts i.'; } outMonthly.textContent='—'; }
+ function renderPresetInfo(){ const preset=PRESETS[currentPreset] || null; if(!productInfo) return; if(preset && preset.info){ productInfo.textContent=preset.info; productInfo.style.display='block'; return; } productInfo.textContent=''; productInfo.style.display='none'; }
+ function applyPreset(key){ const preset=PRESETS[key]; if(!preset) return; suppressPresetTracking=true; Object.keys(preset.fields).forEach(function(name){ const el=PRESET_FIELD_MAP[name]; if(el) setNumericValue(el,preset.fields[name]); }); suppressPresetTracking=false; currentPreset=key; product.value=key; renderPresetInfo(); compute(); }
+ function setCustomIfNeeded(changedField){ if(suppressPresetTracking || !currentPreset || !PRESETS[currentPreset]) return; const preset=PRESETS[currentPreset]; const touched=Object.keys(preset.fields).some(function(name){ return PRESET_FIELD_MAP[name]===changedField; }); if(!touched) return; currentPreset=''; product.value='custom'; renderPresetInfo(); }
+ // ---------------------------------------------------------
+ // RÄNTA PÅ RÄNTA: BERÄKNING
+ // Ändra här endast om själva beräkningen ska ändras.
+ // ---------------------------------------------------------
+ function getNetContributions(monthlyAmount, lumpSum, premiumPct){ const premiumRate=Math.max(0,premiumPct)/100; let monthlyNet=monthlyAmount, lumpNet=lumpSum; if(premiumRate>0){ monthlyNet=monthlyAmount*(1-premiumRate); const lumpPremiumRate=(currentPreset==='privatspar' && lumpSum>=1000000)?0:premiumRate; lumpNet=lumpSum*(1-lumpPremiumRate); } return {monthlyNet,lumpNet}; }
+ function simulateSaving(monthlyAmount, yearsCount, lumpSum, annualPct, fixedFee, variablePct, premiumPct, taxPct){ const months=Math.round(yearsCount*12); const factor=annualToMonthlyFactor(annualPct, variablePct, taxPct); const net=getNetContributions(monthlyAmount,lumpSum,premiumPct); let balance=net.lumpNet; for(let i=1;i<=months;i++){ balance=balance*factor; balance+=net.monthlyNet; if(i%12===0){ balance-=fixedFee; if(balance<0) balance=0; } } return { balance, months }; }
+ function simulatePayout(startBalance, annualPct, fixedFee, variablePct, taxPct, payoutMonths, monthlyPayout){ const factor=annualToMonthlyFactor(annualPct, variablePct, taxPct); let balance=startBalance, totalPaid=0; for(let i=1;i<=payoutMonths;i++){ balance=balance*factor; balance-=monthlyPayout; totalPaid+=monthlyPayout; if(i%12===0) balance-=fixedFee; } return { balance, totalPaid }; }
+ function solveMonthlyPayout(startBalance, annualPct, fixedFee, variablePct, taxPct, payoutMonths){ if(startBalance<=0 || payoutMonths<=0) return 0; let low=0, high=Math.max(startBalance/payoutMonths,1); while(simulatePayout(startBalance,annualPct,fixedFee,variablePct,taxPct,payoutMonths,high).balance>0 && high<startBalance*2) high*=1.5; for(let i=0;i<60;i++){ const mid=(low+high)/2; const rem=simulatePayout(startBalance,annualPct,fixedFee,variablePct,taxPct,payoutMonths,mid).balance; if(rem>0) low=mid; else high=mid; } return low; }
+ // ---------------------------------------------------------
+ // RÄNTA PÅ RÄNTA: VALIDERING
+ // ---------------------------------------------------------
+ function isValidSaving(m,y,l,r,f,v,p,t){ return isFinite(m)&&isFinite(y)&&isFinite(l)&&isFinite(r)&&isFinite(f)&&isFinite(v)&&isFinite(p)&&isFinite(t)&&m>=0&&y>0&&l>=0&&r>=0&&f>=0&&v>=0&&p>=0&&t>=0&&(m>0 || l>0); }
+ function isValidPayout(py,pr){ return isFinite(py)&&isFinite(pr)&&py>0&&pr>=0; }
+ // ---------------------------------------------------------
+ // RÄNTA PÅ RÄNTA: RESULTATVISNING
+ // Här bestäms vad som visas i resultatkorten.
+ // ---------------------------------------------------------
+ function compute(){
+ const m=parseSv(monthly.value), y=parseSv(years.value), l=parseSv(lump.value), r=parseSv(rate.value), f=parseSv(fixed.value), v=parseSv(variable.value), p=parseSv(premium.value), t=parseSv(tax.value), py=parseSv(payoutYears.value), pr=parseSv(payoutRate.value);
+ if(!isValidSaving(m,y,l,r,f,v,p,t)){ warn.style.display='block'; blankResults(false); return; }
+ warn.style.display='none'; const invested=l + (m*Math.round(y*12)); const saving=simulateSaving(m,y,l,r,f,v,p,t); const capitalAtPayoutStart=saving.balance; const growthSave=capitalAtPayoutStart - invested;
+ labelValueSave.textContent='Värde efter '+fmtYears(y)+' år';
+ outInvested.textContent=fmtKr(invested); outValueSave.textContent=fmtKr(capitalAtPayoutStart); outGrowthSave.textContent=fmtKrAllowNegative(growthSave);
+ if(!isValidPayout(py,pr)){ labelValueTotal.textContent='Värde efter '+fmtYears(y)+' år'; outValueTotal.textContent=fmtKr(capitalAtPayoutStart); outGrowthTotal.textContent=fmtKrAllowNegative(growthSave); outMonthly.textContent='—'; info.textContent='Utbetalningstid är 0 år. Sparfasen är beräknad, men snitt per månad visas först när utbetalningstid är större än 0.'; return; }
+ const payoutMonths=Math.round(py*12); const monthlyPayout=solveMonthlyPayout(capitalAtPayoutStart,pr,f,v,t,payoutMonths); const payout=simulatePayout(capitalAtPayoutStart,pr,f,v,t,payoutMonths,monthlyPayout); const growthTotal=payout.totalPaid - invested;
+ labelValueTotal.textContent='Värde efter '+fmtYears(y+py)+' år'; outValueTotal.textContent=fmtKr(payout.totalPaid); outGrowthTotal.textContent=fmtKrAllowNegative(growthTotal); outMonthly.textContent=fmtKr(monthlyPayout)+'/mån'; info.textContent=(currentPreset==='privatspar' && p>0) ? 'Premieavgift dras på insättningar i sparfasen. Engångsinsättning från 1 000 000 kr får 0 % premieavgift. Skatt räknas som en förenklad årlig procentuell belastning.' : 'Snitt per månad är ett jämnt månadsbelopp beräknat efter avgifter och skatt under hela utbetalningstiden.';
+ }
+ // ---------------------------------------------------------
+ // RÄNTA PÅ RÄNTA: KNAPPAR OCH HÄNDELSER
+ // ---------------------------------------------------------
+ button.addEventListener('click', function(e){ e.preventDefault(); openModal('rpr_backdrop','rpr_product'); compute(); });
+ clear.addEventListener('click', function(){ product.value=''; currentPreset=''; renderPresetInfo(); [monthly,years,lump,rate,fixed,variable,premium,payoutYears,payoutRate].forEach(function(el){ setNumericValue(el,0); }); setNumericValue(tax,1.065); warn.style.display='none'; blankResults(false); product.focus(); });
+ product.addEventListener('change', function(){ const val=this.value; if(!val || val==='custom'){ currentPreset=''; renderPresetInfo(); compute(); return; } applyPreset(val); });
+ [fixed, variable, premium, tax, rate, payoutRate].forEach(function(el){ ['input','change'].forEach(function(ev){ el.addEventListener(ev, function(){ setCustomIfNeeded(el); compute(); }); }); });
+ [monthly,years,lump,payoutYears].forEach(function(el){ ['input','change'].forEach(function(ev){ el.addEventListener(ev, compute); }); });
+ blankResults(false); renderPresetInfo();
+ }
+ };
+
+ // =========================================================
+ // VERKTYG: RISK - MODUL
+ // Syfte: bygger risktext utifrån utgångsläge och rekommendation.
+ // Ändra textmallen i buildText() om dokumentationstexten ska ändras.
+ // =========================================================
+ const RISK_TOOL = {
+ id:'risk', type:'verktyg', title:'Risk', order:15, enabled:true,
+ init:function(api){
+ const button=q('module-risk'), initial=q('risk_tool_initial'), recommendation=q('risk_tool_recommendation'), warn=q('risk_tool_warn'), preview=q('risk_tool_preview'), clear=q('risk_tool_clear'), copyBtn=q('risk_tool_copy'), closeBtn=q('risk_tool_close');
+ if(!button || !initial || !recommendation || !warn || !preview || !clear || !copyBtn || !closeBtn) return;
+ bindModal('risk_tool_backdrop',['risk_tool_close']);
+ function riskLevelValue(v){ return ({'låg risk':1,'medelrisk':2,'hög risk':3})[v] || 0; }
+ function buildText(values){ return 'Utifrån din riskvilja, kunskap, erfarenhet och ekonomiska situation så rekommenderades du i utgångsläget '+values.initial+'. Med tanke på din långa sparhorisont så rekommenderar jag som rådgivare i stället att du väljer '+values.recommendation+'. Du väljer enligt mitt förslag.'; }
+ function validate(){
+  const selectedInitial=(initial.value||'').trim();
+  const selectedRecommendation=(recommendation.value||'').trim();
+  if(!selectedInitial || !selectedRecommendation){
+   warn.textContent='Välj både Utgångsläge och Rekommendation.';
+   warn.style.display='block';
+   preview.textContent='—';
+   return null;
+  }
+  if(riskLevelValue(selectedRecommendation) <= riskLevelValue(selectedInitial)){
+   warn.textContent='Rekommendation måste vara högre risk än Utgångsläge.';
+   warn.style.display='block';
+   preview.textContent='—';
+   return null;
+  }
+  const values={ initial:selectedInitial, recommendation:selectedRecommendation };
+  warn.style.display='none';
+  preview.textContent=buildText(values);
+  return values;
+ }
+ function reset(){
+  initial.value='';
+  recommendation.value='';
+  warn.textContent='Välj både Utgångsläge och Rekommendation.';
+  warn.style.display='none';
+  preview.textContent='—';
+ }
+ button.addEventListener('click', function(e){ e.preventDefault(); reset(); openModal('risk_tool_backdrop','risk_tool_initial'); });
+ ['input','change'].forEach(function(ev){ initial.addEventListener(ev, validate); recommendation.addEventListener(ev, validate); });
+ clear.addEventListener('click', function(){ reset(); initial.focus(); });
+ copyBtn.addEventListener('click', function(){ const values=validate(); if(!values) return; api.copyText(buildText(values)).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Risktext kopierad'); }); });
+ closeBtn.addEventListener('click', reset);
+ }
+ };
+
+ // =========================================================
+ // VERKTYG: ÅTERKÖP PRIVATSPAR/PRIVATPENSION - MODUL
+ // Syfte: visar hur återköp kan se ut år 1–10.
+ // Ändra PRESETS för standardvärden och feeRule() för återköpsregler.
+ // =========================================================
+ const BUYBACK_PP_TOOL = {
+ id:'buybackpp', type:'verktyg', title:'Återköp Privatspar/Privatpension', order:30, enabled:false,
+ init:function(api){
+ const button=q('module-buybackpp'), product=q('buyback_product'), monthly=q('buyback_monthly'), lump=q('buyback_lump'), rate=q('buyback_rate'), fixed=q('buyback_fixed'), variable=q('buyback_variable'), premium=q('buyback_premium'), warn=q('buyback_warn'), info=q('buyback_info'), tbody=q('buyback_tbody'), clear=q('buyback_clear');
+ if(!button || !product || !monthly || !lump || !rate || !fixed || !variable || !premium || !warn || !info || !tbody || !clear) return;
+ bindModal('buyback_backdrop',['buyback_close']);
+ const PRESETS = {
+ privatspar: { monthly:1000, lump:0, rate:5.5, fixed:288, variable:0.8, premium:1 },
+ privatpension: { monthly:1000, lump:0, rate:5.5, fixed:250, variable:0.5, premium:0 }
+ };
+ function parseSv(v){ return Number(String(v||'').replace(',','.')); }
+ function setNumericValue(el, value){ if(el) el.value=String(value); }
+ function fmtKr(n){ return new Intl.NumberFormat('sv-SE', { maximumFractionDigits:0 }).format(Math.round(n)).replace(/\u00A0/g,' ')+' kr'; }
+ function fmtKrAllowNegative(n){ const rounded=Math.round(n); return rounded<0 ? '−'+new Intl.NumberFormat('sv-SE', { maximumFractionDigits:0 }).format(Math.abs(rounded)).replace(/\u00A0/g,' ')+' kr' : new Intl.NumberFormat('sv-SE', { maximumFractionDigits:0 }).format(rounded).replace(/\u00A0/g,' ')+' kr'; }
+ function monthlyFactor(ratePct, variablePct){ const r=Math.max(0, ratePct)/100, v=Math.max(0, variablePct)/100; return Math.pow((1+r)*(1-v), 1/12); }
+ function feeRule(year, capital){
+ if(year===1) return null;
+ if(year>=2 && year<=4) return capital*0.03 + 250;
+ if(year>=5 && year<=7) return capital*0.02 + 250;
+ if(year>=8 && year<=9) return capital*0.01 + 250;
+ if(year===10) return 0;
+ return null;
+ }
+ function blank(){ tbody.innerHTML=''; }
+ function applyPreset(key){ const preset=PRESETS[key] || PRESETS.privatspar; setNumericValue(monthly, preset.monthly); setNumericValue(lump, preset.lump); setNumericValue(rate, preset.rate); setNumericValue(fixed, preset.fixed); setNumericValue(variable, preset.variable); setNumericValue(premium, preset.premium); }
+ function resetUnselected(){ product.value=''; warn.style.display='none'; blank(); info.textContent='Välj sparform för att se resultat.'; }
+ function compute(){
+ if(!product.value){ warn.style.display='none'; blank(); info.textContent='Välj sparform för att se resultat.'; return; }
+ const m=parseSv(monthly.value), l=parseSv(lump.value), r=parseSv(rate.value), f=parseSv(fixed.value), v=parseSv(variable.value), p=parseSv(premium.value);
+ const valid=[m,l,r,f,v,p].every(function(n){ return isFinite(n) && n>=0; });
+ if(!valid){ warn.style.display='block'; info.textContent='Beräkningen visar hur ett återköp kan se ut år 1–10. Från och med år 10 finns två fria uttag. I beräkningen antas att hela kapitalet tas ut.'; blank(); return; }
+ warn.style.display='none';
+ const factor=monthlyFactor(r,v), premiumRate=p/100, netMonthly=m*(1-premiumRate), netLump=l*(1-premiumRate);
+ let balance=netLump;
+ const rows=[];
+ for(let month=1; month<=120; month++){
+ balance = balance * factor;
+ balance += netMonthly;
+ if(month%12===0){
+ balance -= f;
+ if(balance<0) balance=0;
+ const year=month/12;
+ const invested=l + (m*12*year);
+ const fee=feeRule(year, balance);
+ let growthLabel='Ej möjligt';
+ if(fee!==null){
+ const valueAfterFee=Math.max(0, balance-fee);
+ const growth=valueAfterFee - invested;
+ growthLabel=fmtKrAllowNegative(growth);
+ }
+ rows.push({ year:year, invested:invested, growthLabel:growthLabel });
+ }
+ }
+ tbody.innerHTML = rows.map(function(row){ return '<tr'+(row.year===10?' class="hl"':'')+'><td><div class="muted">År '+row.year+'</div><div>'+fmtKr(row.invested)+'</div></td><td>'+row.growthLabel+'</td></tr>'; }).join('');
+ info.textContent='Beräkningen visar hur ett återköp kan se ut år 1–10. Från och med år 10 finns två fria uttag. I beräkningen antas att hela kapitalet tas ut.';
+ }
+ button.addEventListener('click', function(e){ e.preventDefault(); openModal('buyback_backdrop','buyback_product'); resetUnselected(); });
+ product.addEventListener('change', function(){ if(!product.value){ resetUnselected(); return; } applyPreset(product.value); compute(); });
+ [monthly, lump, rate, fixed, variable, premium].forEach(function(el){ ['input','change'].forEach(function(ev){ el.addEventListener(ev, compute); }); });
+ clear.addEventListener('click', function(){ resetUnselected(); product.focus(); });
+ resetUnselected();
+ }
+ };
+
+ // =========================================================
+ // VERKTYG: AVKASTNING - MODUL
+ //
+ // Syfte:
+ // Räknar total historisk avkastning och genomsnittlig årlig
+ // avkastning utifrån startvärde, slutvärde och antal år.
+ //
+ // Formler:
+ // Total avkastning = (slutvärde / startvärde - 1) * 100
+ // CAGR = ((slutvärde / startvärde)^(1 / år) - 1) * 100
+ //
+ // Snabbguide för framtida ändringar:
+ // 1. Ändra endast format i formateringsfunktionerna.
+ // 2. Ändra endast formler i compute().
+ // 3. Behåll valideringen så division med 0 aldrig kan ske.
+ // =========================================================
+ const RETURN_TOOL = {
+ id:'return', type:'verktyg', title:'Avkastning', order:12, enabled:true,
+ init:function(){
+ const button=q('module-return'), start=q('return_start'), end=q('return_end'), years=q('return_years'), total=q('return_total'), cagr=q('return_cagr'), gain=q('return_gain'), factor=q('return_factor'), warn=q('return_warn'), clear=q('return_clear');
+ if(!button || !start || !end || !years || !total || !cagr || !gain || !factor || !warn || !clear) return;
+ bindModal('return_backdrop',['return_close']);
+ // ---------------------------------------------------------
+ // AVKASTNING: FORMATERING
+ // ---------------------------------------------------------
+ function parseSv(value){ return Number(String(value || '').replace(',','.')); }
+ function fmtPercent(value){ return new Intl.NumberFormat('sv-SE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(value)+' %'; }
+ function fmtKr(value){ return new Intl.NumberFormat('sv-SE',{maximumFractionDigits:0}).format(Math.round(value)).replace(/\u00A0/g,' ')+' kr'; }
+ function fmtFactor(value){ return new Intl.NumberFormat('sv-SE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(value)+'x'; }
+ function blankResults(){ total.textContent='—'; cagr.textContent='—'; gain.textContent='—'; factor.textContent='—'; }
+ // ---------------------------------------------------------
+ // AVKASTNING: VALIDERING, BERÄKNING OCH RESULTATVISNING
+ // ---------------------------------------------------------
+ function compute(){
+ const startValue=parseSv(start.value), endValue=parseSv(end.value), yearCount=parseSv(years.value);
+ const valid=isFinite(startValue) && isFinite(endValue) && isFinite(yearCount) && startValue>0 && endValue>0 && yearCount>0;
+ if(!valid){ warn.style.display=(start.value || end.value || years.value) ? 'block' : 'none'; blankResults(); return; }
+ warn.style.display='none';
+ const totalReturn=((endValue/startValue)-1)*100;
+ const annualReturn=(Math.pow(endValue/startValue,1/yearCount)-1)*100;
+ total.textContent=fmtPercent(totalReturn);
+ cagr.textContent=fmtPercent(annualReturn);
+ gain.textContent=fmtKr(endValue-startValue);
+ factor.textContent=fmtFactor(endValue/startValue);
+ }
+ // ---------------------------------------------------------
+ // AVKASTNING: KNAPPAR OCH HÄNDELSER
+ // ---------------------------------------------------------
+ button.addEventListener('click',function(event){ event.preventDefault(); openModal('return_backdrop','return_start'); compute(); });
+ [start,end,years].forEach(function(field){ ['input','change'].forEach(function(eventName){ field.addEventListener(eventName,compute); }); });
+ clear.addEventListener('click',function(){ start.value=''; end.value=''; years.value=''; warn.style.display='none'; blankResults(); start.focus(); });
+ blankResults();
+ }
+ };
+ // =========================================================
+ // VERKTYG: ÅTERKOPPLING - MODUL
+ // Syfte: skapar en enkel strukturerad återkopplingstext som kan kopieras.
+ // Skickar inget mejl och sparar inget lokalt.
+ // =========================================================
+ const FEEDBACK_TOOL = {
+ id:'feedback', type:'verktyg', title:'Återkoppling till Patrik', order:40, enabled:true,
+ init:function(api){
+ const button=q('module-feedback'), area=q('feedback_area'), category=q('feedback_category'), text=q('feedback_text'), warn=q('feedback_warn'), clear=q('feedback_clear'), copyBtn=q('feedback_copy');
+ if(!button || !area || !category || !text || !warn || !clear || !copyBtn) return;
+ bindModal('feedback_backdrop',['feedback_close']);
+ function val(el){ return (el && el.value ? String(el.value).trim() : ''); }
+ function setWarn(message){ warn.textContent=message; warn.style.display='block'; }
+ function clearWarn(){ warn.style.display='none'; }
+ function reset(){ area.value=''; category.value=''; text.value=''; clearWarn(); }
+ function buildText(){
+  const missing=[];
+  if(!val(area)) missing.push('Fönster/del');
+  if(!val(category)) missing.push('Kategori');
+  if(!val(text)) missing.push('Återkoppling');
+  if(missing.length){ setWarn('Fyll i: '+missing.join(', ')+'.'); return null; }
+  clearWarn();
+  return ['ÅTERKOPPLING STÖD1','','Version:','v'+APP.version,'','Fönster/del:',val(area),'','Kategori:',val(category),'','Återkoppling:',val(text)].join('\n');
+ }
+ button.addEventListener('click', function(e){ e.preventDefault(); clearWarn(); openModal('feedback_backdrop','feedback_area'); });
+ [area, category, text].forEach(function(el){ ['input','change'].forEach(function(ev){ el.addEventListener(ev, clearWarn); }); });
+ clear.addEventListener('click', function(){ reset(); area.focus(); });
+ copyBtn.addEventListener('click', function(){ const built=buildText(); if(!built) return; api.copyText(built).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Återkoppling kopierad'); }); });
+ }
+ };
+ // =========================================================
+ // =========================================================
+ // VERKTYG: KUNDAVISERING - MODUL
+ // Skapar kopierbara sms-texter. Inga kunduppgifter sparas.
+ // =========================================================
+ const KUNDAVISERING_TOOL = {
+ id:'kundavisering', type:'dold', title:'Kundavisering', order:20, enabled:true,
+ init:function(api){
+ const template=q('kundavisering_template'), name=q('kundavisering_name'), reason=q('kundavisering_reason'), other=q('kundavisering_other'), reasonWrap=q('kundavisering_reason_wrap'), otherWrap=q('kundavisering_other_wrap'), time=q('kundavisering_time'), meeting=q('kundavisering_meeting'), timeWrap=q('kundavisering_time_wrap'), meetingWrap=q('kundavisering_meeting_wrap'), warn=q('kundavisering_warn'), preview=q('kundavisering_preview'), clear=q('kundavisering_clear'), copy=q('kundavisering_copy');
+ if(!template || !name || !reason || !other || !reasonWrap || !otherWrap || !time || !meeting || !timeWrap || !meetingWrap || !warn || !preview || !clear || !copy) return;
+ bindModal('kundavisering_backdrop',['kundavisering_close']);
+ const CONTACT={ name:'Patrik Lundgren', role:'Certifierad rådgivare inom pension och sparande', email:'patrik.lundgren@folksam.se', phone:'0612-85166' };
+ function value(el){ return (el.value||'').trim(); }
+ function fields(){ var isToday=template.value==='today'; reasonWrap.style.display=isToday?'none':'block'; otherWrap.style.display=!isToday&&reason.value==='other'?'block':'none'; timeWrap.style.display=isToday?'block':'none'; meetingWrap.style.display=isToday?'block':'none'; }
+ function build(){
+  var firstName=value(name);
+  if(template.value==='noanswer'){ var reasons={ booked:'inför din bokade rådgivning', newtime:'för att boka en ny tid för rådgivning', transfer:'för att hjälpa dig vidare med flytten av din tjänstepension', continue:'för att fortsätta med vår rådgivning' }; var purpose=reason.value==='other' ? value(other) : reasons[reason.value]; return firstName&&purpose ? 'Hej '+firstName+'!\n\nJag försökte precis ringa dig '+purpose+' men kom inte fram. Du kan ringa mig på '+CONTACT.phone+' eller mejla '+CONTACT.email+'. Annars försöker jag igen när jag får en lucka.\n\n'+CONTACT.name+', Folksam' : ''; }
+  var clock=value(time);
+  if(!firstName || !clock) return '';
+  var meetingText=meeting.value==='teams' ? 'Anslut till mötet via länken i mötesinbjudan.' : 'Jag ringer upp dig på angiven tid och ser fram emot vårt samtal.';
+  return 'Hej '+firstName+'!\n\nDu har en inbokad tid för pensionsrådgivning'+(meeting.value==='teams'?' via Teams':'')+' i dag klockan '+clock+'. '+meetingText+'\n\nVänliga hälsningar\n'+CONTACT.name+'\n'+CONTACT.role+'\n'+CONTACT.email+'\n'+CONTACT.phone;
+ }
+ function render(){ fields(); preview.textContent=build()||'Fyll i uppgifterna för att skapa texten.'; warn.style.display='none'; }
+ function validation(){ if(!value(name)) return 'Fyll i kundens förnamn.'; if(template.value==='noanswer' && reason.value==='other' && !value(other)) return 'Fyll i annan anledning.'; if(template.value==='today' && !value(time)) return 'Fyll i klockslag.'; return ''; }
+ function reset(){ template.value='noanswer'; name.value=''; reason.value='booked'; other.value=''; time.value=''; meeting.value='call'; warn.style.display='none'; render(); }
+ var openLink=q('kundavisering_open'); if(openLink) openLink.addEventListener('click',function(e){ e.preventDefault(); reset(); openModal('kundavisering_backdrop','kundavisering_name'); });
+ [template,name,reason,other,time,meeting].forEach(function(el){ ['input','change'].forEach(function(ev){ el.addEventListener(ev,render); }); });
+ clear.addEventListener('click',function(){ reset(); name.focus(); });
+ copy.addEventListener('click',function(){ var error=validation(); if(error){ warn.textContent=error; warn.style.display='block'; return; } var text=build(); api.copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Kundavisering kopierad'); }); });
+ render();
+ }
+ };
+ // MENYREGISTER - HÄR BESTÄMS VAD SOM VISAS I MENYERNA
+ // type:'verktyg' hamnar under Verktyg.
+ // type:'fusklapp' hamnar under Fusklappar.
+ // enabled:true visas i menyn, enabled:false döljs.
+ // order styr sorteringsordningen inom respektive meny.
+ // =========================================================
+ const MODULES = [
+ {
+ id:'barnbidrag', type:'fusklapp', title:'Barnbidrag', order:10, enabled:true,
+ init:function(api){
+ const button=q('module-barnbidrag'), tbody=q('bb_tbody'), inCount=q('bb_count');
+ if(!button || !tbody || !inCount) return;
+ bindModal('bb_backdrop',['bb_close']);
+ const rows=[
+ {n:1, total:'1 250 kronor', delat:'625 kronor'},
+ {n:2, total:'2 650 kronor', delat:'1 325 kronor'},
+ {n:3, total:'4 480 kronor', delat:'2 240 kronor'},
+ {n:4, total:'6 740 kronor', delat:'3 370 kronor'},
+ {n:5, total:'9 240 kronor', delat:'4 620 kronor'},
+ {n:6, total:'11 740 kronor', delat:'5 870 kronor'}
+ ];
+ tbody.innerHTML = rows.map(function(r){ return '<tr data-n="'+r.n+'"><td>'+r.n+' barn</td><td>'+r.total+'</td><td>'+r.delat+'</td></tr>'; }).join('');
+ function highlight(n){
+ Array.from(tbody.querySelectorAll('tr')).forEach(function(tr){ tr.classList.toggle('hl', Number(tr.dataset.n)===n); });
+ }
+ button.addEventListener('click', function(e){ e.preventDefault(); openModal('bb_backdrop','bb_count'); });
+ inCount.addEventListener('input', function(){ highlight(Number(inCount.value)); });
+ }
+ },
+ { id:'slots', type:'fusklapp', title:'Tidsslottar', order:20, enabled:true, init:function(){ const button=q('module-slots'); if(!button||!q('slots_backdrop')) return; bindModal('slots_backdrop',['slots_close']); button.addEventListener('click', function(e){ e.preventDefault(); openModal('slots_backdrop'); }); } },
+ { id:'fees', type:'fusklapp', title:'Återköpstrappa', order:30, enabled:true, init:function(){ const button=q('module-fees'); if(!button||!q('fees_backdrop')) return; bindModal('fees_backdrop',['fees_close']); button.addEventListener('click', function(e){ e.preventDefault(); openModal('fees_backdrop'); }); } },
+ { id:'skattexempel', type:'fusklapp', title:'Skattexempel', order:35, enabled:true, init:function(){ const button=q('module-skattexempel'); if(!button||!q('skattexempel_backdrop')) return; bindModal('skattexempel_backdrop',['skattexempel_close']); button.addEventListener('click', function(e){ e.preventDefault(); openModal('skattexempel_backdrop'); }); } },
+
+ RISK_TOOL,
+ RETURN_TOOL,
+ KUNDAVISERING_TOOL,
+
+ {
+ id:'dagsmal', type:'verktyg', title:'Dagsmål', order:10, enabled:false,
+ init:function(){
+ const button=q('module-dagsmal'), hours=q('dm_hours'), ftim=q('dm_ftim'), result=q('dm_result'), info=q('dm_info'), warn=q('dm_warn'), clear=q('dm_clear');
+ if(!button || !hours || !ftim || !result || !info || !warn || !clear) return;
+ bindModal('dm_backdrop',['dm_close']);
+ function parseSv(v){ return Number(String(v||'').replace(',','.')); }
+ function fmt(n){ return new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 2 }).format(n).replace(/ /g,' '); }
+ function compute(){
+ const hRaw=(hours.value||'').trim(), fRaw=(ftim.value||'').trim();
+ if(!hRaw || !fRaw){ warn.style.display='none'; result.textContent='—'; info.textContent='Fyll i arbetstid och F/TIM.'; return; }
+ const h=parseSv(hRaw), f=parseSv(fRaw);
+ if(!isFinite(h) || !isFinite(f) || h<0 || f<0){ warn.style.display='block'; result.textContent='—'; info.textContent='Fyll i giltiga värden.'; return; }
+ warn.style.display='none'; const raw=h*f, rounded=Math.ceil(raw), noun=rounded===1 ? 'försäljning' : 'försäljningar';
+ result.textContent = rounded+' '+noun+' ('+fmt(raw)+')';
+ info.textContent = fmt(h)+' × '+fmt(f)+' = '+fmt(raw)+' → avrundas uppåt till '+rounded;
+ }
+ button.addEventListener('click', function(e){ e.preventDefault(); openModal('dm_backdrop','dm_hours'); compute(); });
+ ['input','change'].forEach(function(ev){ hours.addEventListener(ev, compute); ftim.addEventListener(ev, compute); });
+ clear.addEventListener('click', function(){ hours.value=''; ftim.value=''; compute(); hours.focus(); });
+ compute();
+ }
+ },
+ RPR_TOOL,
+ {
+ id:'tasks', type:'verktyg', title:'Uppgifter', order:25, enabled:false,
+ init:function(api){
+ const button=q('module-tasks'), textarea=q('tasks_text'), select=q('tasks_select'), copyAll=q('tasks_copy_all'), editToggle=q('tasks_edit_toggle'), editWrap=q('tasks_edit_wrap'), editRows=q('tasks_edit_rows'), editAdd=q('tasks_edit_add'), editSave=q('tasks_edit_save'), editCancel=q('tasks_edit_cancel');
+ if(!button || !textarea || !select || !copyAll || !editToggle || !editWrap || !editRows || !editAdd || !editSave || !editCancel) return;
+ bindModal('tasks_backdrop',['tasks_close']);
+ const KEY='stod1.tasks.text.v1';
+ const OPTIONS_KEY='stod1.tasks.select.options.v1';
+ const DEFAULT_OPTIONS=['Följ upp flytt av tjänstepension','Skicka blanketter, E-post','Skicka blanketter, singelpost','Skicka info om','Ta reda på'];
+ function load(){ try{ textarea.value = localStorage.getItem(KEY) || ''; }catch(e){ textarea.value=''; } }
+ function save(){ try{ localStorage.setItem(KEY, textarea.value || ''); }catch(e){} }
+ function loadOptions(){
+ try{
+ const raw=JSON.parse(localStorage.getItem(OPTIONS_KEY) || 'null');
+ if(Array.isArray(raw)) return raw.map(function(v){ return String(v); });
+ }catch(e){}
+ return DEFAULT_OPTIONS.slice();
+ }
+ function saveOptions(list){ try{ localStorage.setItem(OPTIONS_KEY, JSON.stringify(list)); }catch(e){} }
+ function renderSelect(){
+ const options=loadOptions();
+ select.innerHTML='';
+ const first=document.createElement('option');
+ first.value='';
+ first.textContent='-- välj --';
+ select.appendChild(first);
+ options.forEach(function(text){
+ const opt=document.createElement('option');
+ opt.value=text;
+ opt.textContent=text;
+ select.appendChild(opt);
+ });
+ select.value='';
+ }
+ function appendLine(text){
+ const inserted = text + ' ';
+ const current = textarea.value || '';
+ textarea.value = current ? (current.endsWith('\n') ? current + inserted : current + '\n' + inserted) : inserted;
+ save();
+ textarea.focus();
+ textarea.selectionStart = textarea.value.length;
+ textarea.selectionEnd = textarea.value.length;
+ }
+ function closeEditMode(){
+ editWrap.classList.remove('open');
+ select.disabled=false;
+ editToggle.disabled=false;
+ }
+ function createRow(value){
+ const row=document.createElement('div');
+ row.className='tasks-edit-row';
+ const input=document.createElement('input');
+ input.type='text';
+ input.value=value || '';
+ row.appendChild(input);
+ editRows.appendChild(row);
+ return input;
+ }
+ function openEditMode(){
+ editRows.innerHTML='';
+ loadOptions().forEach(function(text){ createRow(text); });
+ if(!editRows.children.length) createRow('');
+ editWrap.classList.add('open');
+ select.disabled=true;
+ editToggle.disabled=true;
+ const first=editRows.querySelector('input[type="text"]');
+ if(first) first.focus();
+ }
+ button.addEventListener('click', function(e){
+ e.preventDefault();
+ load();
+ renderSelect();
+ closeEditMode();
+ openModal('tasks_backdrop','tasks_text');
+ });
+ textarea.addEventListener('input', save);
+ select.addEventListener('change', function(){
+ if(!select.value) return;
+ appendLine(select.value);
+ select.value='';
+ });
+ editToggle.addEventListener('click', function(){ openEditMode(); });
+ editAdd.addEventListener('click', function(){
+ const input=createRow('');
+ input.focus();
+ });
+ editSave.addEventListener('click', function(){
+ const values=[].slice.call(editRows.querySelectorAll('input[type="text"]')).map(function(input){ return input.value; }).filter(function(value){ return value !== ''; }).sort(function(a,b){ return a.localeCompare(b,'sv'); });
+ saveOptions(values);
+ renderSelect();
+ closeEditMode();
+ });
+ editCancel.addEventListener('click', function(){
+ closeEditMode();
+ });
+ copyAll.addEventListener('click', function(){
+ api.copyText(textarea.value || '').then(function(){
+ if(window.stod1ShowToast) window.stod1ShowToast('Uppgifter kopierade');
+ });
+ });
+ }
+ },
+ BUYBACK_PP_TOOL,
+ FEEDBACK_TOOL
+ ];
+ window.STOD1_MODULES = MODULES.slice();
+ function renderMenu(type, menuId){
+ const menu=q(menuId); if(!menu) return;
+ menu.innerHTML='';
+ MODULES.filter(function(m){ return m.enabled && m.type===type; }).sort(function(a,b){ return a.order-b.order; }).forEach(function(mod){
+ const btn=document.createElement('button'); btn.id='module-'+mod.id; btn.type='button'; btn.setAttribute('role','menuitem'); btn.textContent=mod.title; menu.appendChild(btn);
+ });
+ }
+ renderMenu('fusklapp','tools_menu');
+ renderMenu('verktyg','tools2_menu');
+ const api={ q:q, copyText:copyText, openModal:openModal, closeModal:function(id){ const bd=q(id); if(bd) bd.style.display='none'; }, bindModal:bindModal, closeAllDropdowns:closeAllDropdowns };
+ MODULES.forEach(function(mod){ if(!mod.enabled) return; try{ mod.init(api); } catch(err){ console.error('Stöd1 modulfel:', mod.id, err); } });
+})();
+</script>
+<script>
+(function(){
+ const trigger=document.getElementById('app_about_trigger');
+ const bd=document.getElementById('about_backdrop');
+ const close=document.getElementById('about_close');
+ if(!trigger || !bd || !close) return;
+ function open(){ if(window.stod1CloseAllModals) window.stod1CloseAllModals('about_backdrop'); bd.style.display='block'; }
+ function shut(){ bd.style.display='none'; }
+ trigger.addEventListener('click', open);
+ trigger.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); open(); } });
+ close.addEventListener('click', shut);
+ let pressOnBackdrop=false;
+ bd.addEventListener('mousedown', function(e){ pressOnBackdrop=(e.target===bd); }, true);
+ bd.addEventListener('click', function(e){ if(e.target===bd && pressOnBackdrop) shut(); pressOnBackdrop=false; }, true);
+ document.addEventListener('keydown', function(e){ if(e.key==='Escape' && bd.style.display!=='none') shut(); });
+})();
+</script>
+<script>
+(function(){
+ const toast=document.getElementById('toast');
+ function showToast(msg){ if(!toast) return; toast.textContent='✓ '+msg; toast.style.display='block'; toast.classList.add('show'); clearTimeout(toast.__to); toast.__to=setTimeout(function(){ toast.classList.remove('show'); setTimeout(function(){ if(!toast.classList.contains('show')) toast.style.display='none'; },170); },2200); }
+ window.stod1ShowToast = showToast;
+})();
+</script>
+<script>
+(function(){
+ const KEY='stod1.theme.v1';
+ const btn=document.getElementById('btn_theme');
+ const frames=['frame-goal','frame-savings','frame-notes'];
+ function normalize(theme){ return theme==='light' ? 'light' : 'dark'; }
+ function applyTheme(theme, persist){
+ theme = normalize(theme);
+ document.documentElement.setAttribute('data-theme', theme);
+ if(btn) btn.textContent = theme==='light' ? 'Mörkt läge' : 'Ljust läge';
+ frames.forEach(function(id){
+ try{
+ var frame=document.getElementById(id);
+ if(frame && frame.contentDocument && frame.contentDocument.documentElement){
+ frame.contentDocument.documentElement.setAttribute('data-theme', theme);
+ }
+ }catch(e){}
+ });
+ if(persist){ try{ localStorage.setItem(KEY, theme); }catch(e){} }
+ }
+ var initial='dark';
+ try{ initial = normalize(localStorage.getItem(KEY)); }catch(e){}
+ applyTheme(initial, false);
+ if(btn){
+ btn.addEventListener('click', function(){
+ applyTheme(document.documentElement.getAttribute('data-theme')==='light' ? 'dark' : 'light', true);
+ });
+ }
+ frames.forEach(function(id){
+ var frame=document.getElementById(id);
+ if(frame){
+ frame.addEventListener('load', function(){
+ applyTheme(document.documentElement.getAttribute('data-theme') || 'dark', false);
+ });
+ }
+ });
+ window.addEventListener('storage', function(e){
+ if(e.key===KEY) applyTheme(e.newValue || 'dark', false);
+ });
+})();
+</script>
+
+
+
+
+<script>
+(function(){
+ document.title = 'Stöd1 v' + APP.version;
+ var chip = document.getElementById('ver_chip'); if(chip) chip.textContent = 'v'+APP.version;
+ var cur = document.getElementById('current_version'); if(cur) cur.textContent = 'v'+APP.version;
+})();
+</script>
+</body>
+</html>

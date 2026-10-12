@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Målsättning</title>
+<script>
+(function(){
+ try{
+  var theme = localStorage.getItem('stod1.theme.v1') || 'dark';
+  if(theme !== 'light') theme = 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+ }catch(e){}
+})();
+</script>
+<style>
+ :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--line:#2b3545;--text:#e5e7eb;--muted:#9ca3af;--accent:#0ea5e9;--ink:#0b1220;--ink2:#030712;--focus:#60a5fa22;--activeGlow:#67e8f980}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+ .mb-goal-nav{padding:16px 16px 0}
+ .mb-goal-nav-card{background:linear-gradient(90deg,var(--card),var(--panel));border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));border-radius:10px;overflow:hidden}
+ .mb-goal-areas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:end;border-bottom:1px solid var(--accent);padding:8px 14px 0}
+ .mb-goal-area{appearance:none;border:1px solid transparent;border-bottom:0;border-radius:8px 8px 0 0;background:transparent;color:var(--accent);padding:7px 10px 8px;font:inherit;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-height:66px}
+ .mb-goal-area.active{background:rgba(14,165,233,.12);color:var(--text);border-color:var(--accent);position:relative;margin-bottom:-1px}
+ .mb-goal-area[aria-disabled="true"]{opacity:1}
+ .mb-goal-icon{width:30px;height:30px;color:var(--accent);display:block;flex:0 0 auto}
+ .mb-goal-icon>*{vector-effect:non-scaling-stroke}
+ .mb-goal-label{display:inline-flex;align-items:baseline;gap:4px}
+ .mb-goal-count{display:none;color:color-mix(in srgb,var(--accent) 55%,var(--muted));font-size:12px;font-weight:400}
+ .mb-goal-selection{padding:10px 16px 14px}
+ .mb-goal-panel{display:none}
+ .mb-goal-panel.active{display:block}
+ .mb-goal-selection h2{margin:0 0 4px;font-size:15px}
+ .mb-goal-selection p{margin:0 0 10px;color:var(--muted);font-size:13px}
+ .mb-goal-list{display:grid;gap:8px}
+ .mb-goal-option{display:flex;align-items:flex-start;gap:8px;color:var(--text)}
+ .mb-goal-option input{margin-top:3px}
+ .mb-goal-card{grid-column:1 / -1;display:none}
+ .mb-goal-card-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:start}
+ .mb-goal-card-output{background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-height:160px;display:flex;flex-direction:column;gap:12px}
+ .mb-goal-card-output h3{margin:0;font-size:13px}
+ .mb-goal-card-output .mb-out{flex:1}
+ #mb_pension .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_pension .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_pension_tp .content{padding-top:10px;padding-bottom:10px}
+ #mb_pension_tp .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_pension_tp .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_trust_buffer textarea{width:100%;min-height:110px;resize:vertical;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:none}
+ #mb_trust_buffer .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_trust_buffer .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_trust_family .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_trust_family .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_trust_other textarea{width:100%;min-height:110px;resize:vertical;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:none}
+ #mb_trust_other .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_trust_other .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_pension_early textarea,#mb_pension_other textarea{width:100%;min-height:110px;resize:vertical;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:none}
+ #mb_pension_early .mb-goal-card-output,#mb_pension_other .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_pension_early .mb-out,#mb_pension_other .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_gift_goal .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_gift_goal .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_gift_other textarea{width:100%;min-height:110px;resize:vertical;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:none}
+ #mb_gift_other .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_gift_other .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_realize_travel .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_realize_travel .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ .mb-goal-template-options{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 10px}
+ .mb-goal-template-options label{display:inline-flex;align-items:center;gap:6px;color:var(--text);font-size:13px;font-weight:600}
+ #mb_realize_housing .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_realize_housing .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_realize_other textarea{width:100%;min-height:110px;resize:vertical;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:none}
+ #mb_realize_other .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_realize_other .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_manage_review textarea{width:100%;min-height:110px;resize:vertical;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:none}
+ #mb_manage_review .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_manage_review .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_manage_capital textarea{width:100%;min-height:110px;resize:vertical;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:none}
+ #mb_manage_capital .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_manage_capital .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ #mb_manage_capital_sources{display:none;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+ #mb_manage_capital_sources label{display:inline-flex;align-items:center;gap:6px}
+ .mb-added-free{width:100%;min-height:110px;resize:vertical;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:none;display:none}
+ #mb_manage_other textarea{width:100%;min-height:110px;resize:vertical;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;outline:none}
+ #mb_manage_other .mb-goal-card-output{min-height:0;padding:10px 12px;gap:8px}
+ #mb_manage_other .mb-out{min-height:0;max-height:none;flex:0 0 auto;overflow:visible;padding:10px 12px}
+ @media (max-width:1000px){.mb-goal-card-layout{grid-template-columns:1fr}}
+ .mb-tools-row{display:grid;grid-template-columns:1.1fr 0.9fr;gap:16px;padding:16px 16px 0 16px}
+ .mb-tools{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+ .mb-tools .btn{padding:7px 10px;font-size:12px}
+ .mb-grid{display:grid;gap:16px;grid-template-columns:1.1fr 0.9fr;align-items:stretch;padding:12px 16px 16px;position:relative;z-index:0}
+ @media (max-width:1000px){ .mb-grid,.mb-tools-row{grid-template-columns:1fr} }
+ .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+ .card.mb-goal-card{border:1px solid var(--accent)}
+ #mb_gift,#mb_gift_out,#mb_forv,#mb_forv_out{display:none}
+ .mb-grid .card{height:100%}
+ .card>header{position:relative;background:transparent;border-bottom:1px solid #283244;padding:12px 14px}
+ .card>header h2{margin:0;font-size:15px}
+ .card.mb-goal-card>header{padding:5px 14px}
+ .content{padding:14px 16px 12px}
+ .row{display:grid;gap:10px;grid-template-columns:repeat(12,1fr);align-items:center}
+ .row label{grid-column:span 4;color:#cbd5e1;font-size:13px}
+ .row .field{grid-column:span 8;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+ .mb-goal-card .row{grid-template-columns:150px minmax(0,1fr)}
+ .mb-goal-card .row>label{grid-column:auto}
+ .mb-goal-card .row>.field{grid-column:auto}
+ .content > .row + .row{margin-top:10px}
+ .content > .row + .btns{margin-top:14px}
+ .content > .btns + .row{margin-top:14px}
+ input[type=number], select{background:var(--ink);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:8px 10px;font-size:14px;outline:none;min-width:0}
+ button:focus-visible, select:focus-visible, input:focus-visible{outline:0;border-color:#3b82f6;box-shadow:0 0 0 2px var(--focus)}
+ .short{max-width:120px}
+ .unit{color:#9fb1cc;font-size:12px;white-space:nowrap}
+ .btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+ .btn{appearance:button;-webkit-appearance:button;border-radius:8px;border:1px solid var(--line);padding:8px 12px;font-weight:600;cursor:pointer;transition:filter .15s, box-shadow .15s, border-color .15s}
+ .btn-primary{background:linear-gradient(180deg,var(--accent),#0284c7);color:#06253a;border-color:#67e8f9}
+ .btn-ghost{background:transparent;color:#cbd5e1}
+ .btn-primary:hover{filter:brightness(1.05)}
+ .btn-ghost:hover{background:var(--ink)}
+ .collapse-toggle{position:absolute;right:12px;top:10px;background:transparent;color:#9ca3af;border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
+ .collapse-toggle:hover{background:var(--ink)}
+ .card>header[aria-expanded='false'] + .content{display:none}
+ .mb-right{display:flex;flex-direction:column}
+ .mb-out{white-space:pre-wrap;background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:12px;min-height:110px;max-height:220px;overflow:auto;flex:1}
+ #mb_forv,#mb_forv_out{align-self:start}
+ #mb_forv_out .mb-out{min-height:72px;flex:0 0 auto}
+ .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998}
+ .backdrop[style*='display:none']{pointer-events:none}
+ .modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(680px,92vw);background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+ .modal header{padding:12px 14px;border-bottom:1px solid #283244;background:linear-gradient(90deg,var(--panel),#0b1020)}
+ .modal h2{margin:0;font-size:15px}
+ .modal .body{padding:12px 14px;display:flex;flex-direction:column;gap:10px;background:var(--card);color:var(--text)}
+ .actions{display:flex;gap:8px;justify-content:flex-end;padding:10px 14px;border-top:1px solid #283244}
+ .btn-link{background:transparent;border:0;color:#9ca3af;padding:4px 6px;font-size:12px;cursor:pointer}
+ .btn-link:hover{color:#e5e7eb}
+ .muted{color:#9ca3af;font-size:12px}
+ .warn{display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px;font-size:12px}
+ .content > .row + .warn{margin-top:10px}
+ .content > .warn + .btns{margin-top:14px}
+ #toast{position:fixed;left:16px;top:10px;background:#111827;color:#e5e7eb;border:1px solid #3b4558;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;line-height:1.2;display:none;z-index:21000;box-shadow:0 8px 18px rgba(0,0,0,.28);opacity:0;transform:translateY(-6px);transition:opacity .16s ease, transform .16s ease}
+ #toast.show{display:block;opacity:1;transform:translateY(0)}
+ :root[data-theme="light"]{
+ --bg:#f3f5f8;--panel:#ffffff;--card:#ffffff;--line:#d6dde8;--text:#0f172a;--muted:#64748b;--accent:#2563eb;--ink:#ffffff;--ink2:#f8fafc;--focus:rgba(37,99,235,.14);--activeGlow:rgba(37,99,235,.18);
+ }
+ :root[data-theme="light"] .mb-goal-area.active{background:#eff6ff}
+ :root[data-theme="light"] .card>header{border-bottom:1px solid var(--line)}
+ :root[data-theme="light"] .row label{color:#334155}
+ :root[data-theme="light"] .btn-primary{background:linear-gradient(180deg,var(--accent),#1d4ed8);color:#ffffff;border-color:#2563eb}
+ :root[data-theme="light"] .btn-ghost{color:#334155}
+ :root[data-theme="light"] .collapse-toggle{color:#64748b}
+ :root[data-theme="light"] .collapse-toggle:hover,:root[data-theme="light"] .btn-ghost:hover{background:#eef2f7}
+ :root[data-theme="light"] .unit{color:#64748b}
+ :root[data-theme="light"] .warn{color:#92400e;background:#fff7ed;border-color:#fdba74}
+ :root[data-theme="light"] .backdrop{background:rgba(15,23,42,.18)}
+ :root[data-theme="light"] .modal{box-shadow:0 20px 60px rgba(15,23,42,.18)}
+ :root[data-theme="light"] .modal header{background:linear-gradient(90deg,var(--panel),#eef2f7);border-bottom:1px solid var(--line)}
+ :root[data-theme="light"] .actions{border-top:1px solid var(--line)}
+ :root[data-theme="light"] .btn-link:hover{color:#0f172a}
+ :root[data-theme="light"] #toast{background:#ffffff;color:#0f172a;border-color:#cbd5e1;box-shadow:0 8px 18px rgba(15,23,42,.14)}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<main>
+ <section class="mb-goal-nav" aria-label="Målstruktur">
+  <div class="mb-goal-nav-card">
+   <nav class="mb-goal-areas" aria-label="Huvudområden">
+    <button class="mb-goal-area" type="button" data-area="trygghet"><svg class="mb-goal-icon" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M3 15a13 13 0 0 1 26 0c-2.4-1.7-4.9-1.7-7.3 0-2.4-1.7-4.9-1.7-7.3 0-2.4-1.7-4.9-1.7-7.3 0A7.7 7.7 0 0 0 3 15Z"/><path d="M16 4v19.5c0 3.2 4.6 3.2 4.6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="mb-goal-label">Trygghet <span class="mb-goal-count" id="mb_goal_count_trygghet" aria-live="polite"></span></span></button>
+    <button class="mb-goal-area active" type="button" data-area="pension" aria-current="page"><svg class="mb-goal-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="currentColor"/><path d="M16 4v12h12" fill="var(--card)" stroke="var(--card)" stroke-width="1"/><path d="M16 16 25.7 23A12 12 0 0 0 28 16Z" fill="var(--card)"/></svg><span class="mb-goal-label">Pension <span class="mb-goal-count" id="mb_goal_count_pension" aria-live="polite"></span></span></button>
+    <button class="mb-goal-area" type="button" data-area="gava"><svg class="mb-goal-icon" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M15 15C8 15 5 11.8 5 8.5 5 5.7 7.2 4 9.8 4 13.5 4 15 8.6 15 15Zm2 0c0-6.4 1.5-11 5.2-11C24.8 4 27 5.7 27 8.5 27 11.8 24 15 17 15Zm-2 2c0 6.4-1.5 11-5.2 11C7.2 28 5 26.3 5 23.5 5 20.2 8 17 15 17Zm2 0c7 0 10 3.2 10 6.5 0 2.8-2.2 4.5-4.8 4.5C18.5 28 17 23.4 17 17Z"/><path d="M16 17v12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="mb-goal-label">Gåva <span class="mb-goal-count" id="mb_goal_count_gava" aria-live="polite"></span></span></button>
+    <button class="mb-goal-area" type="button" data-area="forverkliga"><svg class="mb-goal-icon" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 28S4 20.5 4 11.5C4 5.7 11.3 3.3 16 8c4.7-4.7 12-2.3 12 3.5C28 20.5 16 28 16 28Z"/></svg><span class="mb-goal-label">Förverkliga <span class="mb-goal-count" id="mb_goal_count_forverkliga" aria-live="polite"></span></span></button>
+    <button class="mb-goal-area" type="button" data-area="forvalta"><svg class="mb-goal-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="6" r="3.5" fill="currentColor"/><path fill="currentColor" d="M10 16c0-3.8 2.7-6 6-6s6 2.2 6 6v1H10Z"/><path fill="currentColor" d="M7 17h18a2 2 0 0 1 2 2v9H5v-9a2 2 0 0 1 2-2Z"/><path d="M12 17v-2h8v2M5 22h22M15 22v2h2v-2" fill="none" stroke="var(--card)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mb-goal-label">Förvalta <span class="mb-goal-count" id="mb_goal_count_forvalta" aria-live="polite"></span></span></button>
+   </nav>
+   <div class="mb-goal-selection mb-goal-panel" data-goal-panel="trygghet">
+    <h2>Trygghet – välj mål</h2>
+    <p>Målvalen kopplas till målkorten i senare steg.</p>
+    <div class="mb-goal-list">
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_trust_buffer" data-goal-count="trygghet" /> <span>Att ha en ekonomisk trygghet om något oförutsett skulle inträffa</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_trust_family" data-goal-count="trygghet" /> <span>Att min familj har en tryggad ekonomi om jag skulle gå bort</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_trust_other" data-goal-count="trygghet" /> <span>Andra mål – Trygghet</span></label>
+    </div>
+   </div>
+   <div class="mb-goal-selection mb-goal-panel active" data-goal-panel="pension">
+    <h2>Pension – välj mål</h2>
+    <p>Målvalen kopplas till målkorten i ett senare steg.</p>
+    <div class="mb-goal-list">
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_pension_better" data-goal-count="pension" /> <span>Att få en bättre pension när jag slutar jobba</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_pension_early" data-goal-count="pension" /> <span>Att kunna gå i pension tidigare eller gå ner i arbetstid</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_pension_tp" data-goal-count="pension" /> <span>Att se över min tjänstepension</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_pension_other" data-goal-count="pension" /> <span>Andra mål – Pension</span></label>
+    </div>
+   </div>
+   <div class="mb-goal-selection mb-goal-panel" data-goal-panel="gava">
+    <h2>Gåva – välj mål</h2>
+    <p>Målvalen kopplas till målkorten i senare steg.</p>
+    <div class="mb-goal-list">
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_gift_main" data-goal-count="gava" /> <span>Att kunna ge ett ekonomiskt bidrag till barn eller barnbarn</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_gift_other" data-goal-count="gava" /> <span>Andra mål – Gåva</span></label>
+    </div>
+   </div>
+   <div class="mb-goal-selection mb-goal-panel" data-goal-panel="forverkliga">
+    <h2>Förverkliga – välj mål</h2>
+    <p>Målvalen kopplas till målkorten i senare steg.</p>
+    <div class="mb-goal-list">
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_realize_travel" data-goal-count="forverkliga" /> <span>Att kunna unna mig något extra, som att exempelvis köpa något eller göra en längre resa</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_realize_housing" data-goal-count="forverkliga" /> <span>Att spara till ett framtida boende</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_realize_other" data-goal-count="forverkliga" /> <span>Andra mål – Förverkliga</span></label>
+    </div>
+   </div>
+   <div class="mb-goal-selection mb-goal-panel" data-goal-panel="forvalta">
+    <h2>Förvalta – välj mål</h2>
+    <p>Målvalen kopplas till målkorten i senare steg.</p>
+    <div class="mb-goal-list">
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_manage_review" data-goal-count="forvalta" /> <span>Att se över mitt sparande</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_manage_capital" data-goal-count="forvalta" /> <span>Att bygga upp ett långsiktigt kapital</span></label>
+     <label class="mb-goal-option"><input type="checkbox" id="mb_goal_manage_other" data-goal-count="forvalta" /> <span>Andra mål – Förvalta</span></label>
+    </div>
+   </div>
+  </div>
+ </section>
+ <div class="mb-grid">
+ <section class="card mb-goal-card" id="mb_trust_buffer" data-goal-card-area="trygghet">
+ <header><h2>Att ha en ekonomisk trygghet om något oförutsett skulle inträffa</h2></header>
+ <div class="content">
+  <div class="mb-goal-template-options"><label><input type="radio" id="mb_template_trust_buffer" name="mb_template_trust_buffer" value="single" checked /> Fritext</label></div>
+  <div class="mb-goal-card-layout">
+   <div>
+    <label for="mb_trust_buffer_text" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Måltext</label>
+    <textarea id="mb_trust_buffer_text" placeholder="Skriv kundens mål"></textarea>
+   </div>
+   <div class="mb-goal-card-output">
+    <h3>Sammanställd text</h3>
+    <div id="mb_trust_buffer_output" class="mb-out">— tomt —</div>
+    <div class="btns"><button class="btn btn-primary" id="mb_trust_buffer_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div>
+   </div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_trust_family" data-goal-card-area="trygghet">
+ <header><h2>Att min familj har en tryggad ekonomi om jag skulle gå bort</h2></header>
+ <div class="content">
+  <div class="mb-goal-template-options"><label><input type="radio" id="mb_template_trust_family" name="mb_template_trust_family" value="single" checked /> Livförsäkring</label><label><input type="radio" id="mb_template_trust_family_raise" name="mb_template_trust_family" value="raise" /> Höja livförsäkring</label><label><input type="radio" id="mb_template_trust_family_free" name="mb_template_trust_family" value="free" /> Fritext</label></div>
+  <div class="mb-goal-card-layout">
+   <div>
+    <div class="row"><label for="mb_trust_family_amount">Ansökt livförsäkringsbelopp</label><div class="field"><input id="mb_trust_family_amount" type="number" min="1" step="1000" value="" inputmode="numeric" /><span class="unit">kr</span></div></div>
+    <div id="mb_trust_family_raise_fields" style="display:none">
+     <div class="row"><label for="mb_trust_family_current">Befintligt försäkringsbelopp</label><div class="field"><input id="mb_trust_family_current" type="number" min="1" step="1000" value="" inputmode="numeric" /><span class="unit">kr</span></div></div>
+     <div class="row"><label for="mb_trust_family_new">Nytt försäkringsbelopp</label><div class="field"><input id="mb_trust_family_new" type="number" min="1" step="1000" value="" inputmode="numeric" /><span class="unit">kr</span></div></div>
+     <label for="mb_trust_family_background" style="display:block;color:#cbd5e1;font-size:13px;margin:6px 0">Bakgrund</label>
+     <textarea class="mb-added-free" id="mb_trust_family_background" placeholder="Beskriv bakgrunden"></textarea>
+    </div>
+    <div id="mb_trust_family_warn" class="warn">Ange giltiga försäkringsbelopp och bakgrund.</div>
+   <textarea class="mb-added-free" id="mb_trust_family_free_text" placeholder="Skriv kundens mål"></textarea>
+   </div>
+   <div class="mb-goal-card-output">
+    <h3>Sammanställd text</h3>
+    <div id="mb_trust_family_output" class="mb-out">— tomt —</div>
+    <div class="btns"><button class="btn btn-primary" id="mb_trust_family_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div>
+   </div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_trust_other" data-goal-card-area="trygghet">
+ <header><h2>Andra mål – Trygghet</h2></header>
+ <div class="content">
+  <div class="mb-goal-template-options"><label><input type="radio" id="mb_template_trust_other" name="mb_template_trust_other" value="single" checked /> Fritext</label></div>
+  <div class="mb-goal-card-layout">
+   <div>
+    <label for="mb_trust_other_text" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Måltext</label>
+    <textarea id="mb_trust_other_text" placeholder="Skriv kundens mål"></textarea>
+   </div>
+   <div class="mb-goal-card-output">
+    <h3>Sammanställd text</h3>
+    <div id="mb_trust_other_output" class="mb-out">— tomt —</div>
+    <div class="btns"><button class="btn btn-primary" id="mb_trust_other_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div>
+   </div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_gift_goal" data-goal-card-area="gava">
+ <header><h2>Att kunna ge ett ekonomiskt bidrag till barn eller barnbarn</h2></header>
+ <div class="content">
+  <div class="mb-goal-template-options"><label><input type="radio" id="mb_template_gift_goal" name="mb_template_gift_goal" value="single" checked /> Gåva</label><label><input type="radio" id="mb_template_gift_goal_free" name="mb_template_gift_goal" value="free" /> Fritext</label></div>
+  <div class="mb-goal-card-layout">
+   <div>
+    <div class="row"><label>Mottagare</label><div class="field"><label style="display:flex;align-items:center;gap:6px"><input type="radio" name="mb_gift_goal_recipient" id="mb_gift_goal_child" value="child" checked /> Barn</label><label style="display:flex;align-items:center;gap:6px"><input type="radio" name="mb_gift_goal_recipient" id="mb_gift_goal_grandchild" value="grandchild" /> Barnbarn</label></div></div>
+    <div class="row"><label for="mb_gift_goal_amount">Målsumma</label><div class="field"><input id="mb_gift_goal_amount" type="number" min="1" step="1000" value="200000" inputmode="numeric" /><span class="unit">kr</span></div></div>
+    <div class="row"><label for="mb_gift_goal_years">Antal år</label><div class="field"><input class="short" id="mb_gift_goal_years" type="number" min="1" step="1" value="18" inputmode="numeric" /><span class="unit">år</span></div></div>
+    <div id="mb_gift_goal_warn" class="warn">Ange en målsumma och ett antal år större än 0.</div>
+   <textarea class="mb-added-free" id="mb_gift_goal_free_text" placeholder="Skriv kundens mål"></textarea>
+   </div>
+   <div class="mb-goal-card-output">
+    <h3>Sammanställd text</h3>
+    <div id="mb_gift_goal_output" class="mb-out">— tomt —</div>
+    <div class="btns"><button class="btn btn-primary" id="mb_gift_goal_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div>
+   </div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_gift_other" data-goal-card-area="gava">
+ <header><h2>Andra mål – Gåva</h2></header>
+ <div class="content"><div class="mb-goal-template-options"><label><input type="radio" id="mb_template_gift_other" name="mb_template_gift_other" value="single" checked /> Fritext</label></div><div class="mb-goal-card-layout"><div>
+  <label for="mb_gift_other_text" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Måltext</label>
+  <textarea id="mb_gift_other_text" placeholder="Skriv kundens mål"></textarea>
+ </div><div class="mb-goal-card-output"><h3>Sammanställd text</h3><div id="mb_gift_other_output" class="mb-out">— tomt —</div><div class="btns"><button class="btn btn-primary" id="mb_gift_other_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div></div></div></div>
+ </section>
+ <section class="card mb-goal-card" id="mb_realize_travel" data-goal-card-area="forverkliga">
+ <header><h2>Att kunna unna mig något extra</h2></header>
+ <div class="content">
+  <div class="mb-goal-template-options"><label><input type="radio" id="mb_template_realize_travel" name="mb_template_realize_travel" value="single" checked /> Göra en resa</label><label><input type="radio" id="mb_template_realize_travel_free" name="mb_template_realize_travel" value="free" /> Fritext</label></div>
+  <div class="mb-goal-card-layout">
+   <div>
+    <div class="row"><label for="mb_realize_travel_amount">Målsumma</label><div class="field"><input id="mb_realize_travel_amount" type="number" min="1" step="1000" value="" inputmode="numeric" /><span class="unit">kr</span></div></div>
+    <div class="row"><label for="mb_realize_travel_years">Antal år</label><div class="field"><input class="short" id="mb_realize_travel_years" type="number" min="1" step="1" value="" inputmode="numeric" /><span class="unit">år</span></div></div>
+    <div id="mb_realize_travel_warn" class="warn">Ange antal år och målsumma större än 0.</div>
+   <textarea class="mb-added-free" id="mb_realize_travel_free_text" placeholder="Skriv kundens mål"></textarea>
+   </div>
+   <div class="mb-goal-card-output">
+    <h3>Sammanställd text</h3>
+    <div id="mb_realize_travel_output" class="mb-out">— tomt —</div>
+    <div class="btns"><button class="btn btn-primary" id="mb_realize_travel_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div>
+   </div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_realize_housing" data-goal-card-area="forverkliga">
+ <header><h2>Att spara till ett framtida boende</h2></header>
+ <div class="content">
+  <div class="mb-goal-template-options"><label><input type="radio" id="mb_template_realize_housing" name="mb_template_realize_housing" value="single" checked /> Kontantinsats</label><label><input type="radio" id="mb_template_realize_housing_free" name="mb_template_realize_housing" value="free" /> Fritext</label></div>
+  <div class="mb-goal-card-layout">
+   <div>
+    <div class="row"><label for="mb_realize_housing_amount">Målsumma</label><div class="field"><input id="mb_realize_housing_amount" type="number" min="1" step="1000" value="" inputmode="numeric" /><span class="unit">kr</span></div></div>
+    <div class="row"><label for="mb_realize_housing_years">Antal år</label><div class="field"><input class="short" id="mb_realize_housing_years" type="number" min="1" step="1" value="" inputmode="numeric" /><span class="unit">år</span></div></div>
+    <div id="mb_realize_housing_warn" class="warn">Ange målsumma och antal år större än 0.</div>
+   <textarea class="mb-added-free" id="mb_realize_housing_free_text" placeholder="Skriv kundens mål"></textarea>
+   </div>
+   <div class="mb-goal-card-output">
+    <h3>Sammanställd text</h3>
+    <div id="mb_realize_housing_output" class="mb-out">— tomt —</div>
+    <div class="btns"><button class="btn btn-primary" id="mb_realize_housing_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div>
+   </div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_realize_other" data-goal-card-area="forverkliga">
+ <header><h2>Andra mål – Förverkliga</h2></header>
+ <div class="content"><div class="mb-goal-template-options"><label><input type="radio" id="mb_template_realize_other" name="mb_template_realize_other" value="single" checked /> Fritext</label></div><div class="mb-goal-card-layout"><div>
+  <label for="mb_realize_other_text" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Måltext</label>
+  <textarea id="mb_realize_other_text" placeholder="Skriv kundens mål"></textarea>
+ </div><div class="mb-goal-card-output"><h3>Sammanställd text</h3><div id="mb_realize_other_output" class="mb-out">— tomt —</div><div class="btns"><button class="btn btn-primary" id="mb_realize_other_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div></div></div></div>
+ </section>
+ <section class="card mb-goal-card" id="mb_manage_review" data-goal-card-area="forvalta">
+ <header><h2>Att se över mitt sparande</h2></header>
+ <div class="content">
+  <div class="mb-goal-template-options">
+   <label><input type="radio" id="mb_manage_review_risk" name="mb_manage_review_template" value="risk" checked /> Höja risk</label>
+   <label><input type="radio" id="mb_manage_review_free" name="mb_manage_review_template" value="free" /> Fritext</label>
+  </div>
+  <div class="mb-goal-card-layout">
+   <div><textarea id="mb_manage_review_text" placeholder="Skriv kundens mål" style="display:none"></textarea></div>
+   <div class="mb-goal-card-output">
+    <h3>Sammanställd text</h3>
+    <div id="mb_manage_review_output" class="mb-out">Målet med rådgivningen är att se över ditt befintliga sparande och öka möjligheten till högre avkastning genom en mer aktieinriktad placering. Du sparar i dag i traditionell förvaltning hos Folksam men vill, med hänsyn till din långa spartid och vilja att ta högre risk, ändra förvaltningsformen till fondförvaltning. Du är införstådd med att värdet kan variera mer och att en högre risk inte garanterar en högre avkastning.</div>
+    <div class="btns"><button class="btn btn-primary" id="mb_manage_review_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div>
+   </div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_manage_capital" data-goal-card-area="forvalta">
+ <header><h2>Att bygga upp ett långsiktigt kapital</h2></header>
+ <div class="content">
+  <div class="mb-goal-template-options">
+   <label><input type="radio" id="mb_manage_capital_fixed" name="mb_manage_capital_template" value="fixed" checked /> Befintligt kapital/Överskott</label>
+   <label><input type="radio" id="mb_manage_capital_free" name="mb_manage_capital_template" value="free" /> Fritext</label>
+  </div>
+  <div id="mb_manage_capital_sources">
+   <label><input type="checkbox" id="mb_manage_capital_existing" /> Befintligt kapital</label>
+   <label><input type="checkbox" id="mb_manage_capital_surplus" /> Löpande överskott</label>
+  </div>
+  <div class="mb-goal-card-layout">
+   <div><textarea id="mb_manage_capital_text" placeholder="Skriv kundens mål" style="display:none"></textarea></div>
+   <div class="mb-goal-card-output"><h3>Sammanställd text</h3><div id="mb_manage_capital_output" class="mb-out">— tomt —</div><div class="btns"><button class="btn btn-primary" id="mb_manage_capital_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div></div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_manage_other" data-goal-card-area="forvalta">
+ <header><h2>Andra mål – Förvalta</h2></header>
+ <div class="content"><div class="mb-goal-template-options"><label><input type="radio" id="mb_template_manage_other" name="mb_template_manage_other" value="single" checked /> Fritext</label></div><div class="mb-goal-card-layout"><div><textarea id="mb_manage_other_text" placeholder="Skriv kundens mål"></textarea></div><div class="mb-goal-card-output"><h3>Sammanställd text</h3><div id="mb_manage_other_output" class="mb-out">— tomt —</div><div class="btns"><button class="btn btn-primary" id="mb_manage_other_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div></div></div></div>
+ </section>
+ <section class="card mb-goal-card" id="mb_pension" data-goal-card-area="pension">
+ <header><h2>Att få en bättre pension när jag slutar jobba</h2></header>
+ <div class="content" id="mb_pension_body">
+  <div class="mb-goal-template-options"><label><input type="radio" id="mb_template_pension" name="mb_template_pension" value="single" checked /> Standardtext</label><label><input type="radio" id="mb_template_pension_free" name="mb_template_pension" value="free" /> Fritext</label></div>
+  <div class="mb-goal-card-layout">
+   <div>
+ <div class="row">
+ <label for="mb_p_age">Pensionsålder (år) <button type="button" id="mb_rikt_info" title="Välj när du vill se vilken riktålder eller tidigaste pensionsålder som gäller utifrån födelseår." class="btn btn-ghost" style="padding:4px 8px;font-size:12px;line-height:1;border-radius:6px;margin-left:6px">ℹ️ Riktålder</button></label>
+ <div class="field"><input class="short" id="mb_p_age" type="number" min="60" max="70" value="65" inputmode="numeric" /><span class="unit">år</span></div>
+ </div>
+ <div class="row"><label for="mb_p_income">Nuvarande inkomst</label><div class="field"><input id="mb_p_income" type="number" min="0" step="100" value="" inputmode="numeric" /><span class="unit">kr/mån (före skatt)</span></div></div>
+ <div class="row"><label>Önskad pension</label><div class="field" id="mb_p_mode" role="radiogroup" aria-label="Välj hur önskad pension anges"><label style="display:flex;align-items:center;gap:6px"><input type="radio" name="mb_p_mode" id="mb_p_mode_percent" value="percent" checked /> Procent</label><label style="display:flex;align-items:center;gap:6px"><input type="radio" name="mb_p_mode" id="mb_p_mode_amount" value="amount" /> Belopp</label></div></div>
+ <div class="row" id="mb_p_percent_row"><label for="mb_p_percent">Procent av inkomst</label><div class="field"><input class="short" id="mb_p_percent" type="number" min="1" step="1" value="100" inputmode="numeric" /><span class="unit">% av nuvarande inkomst</span><span class="unit" id="mb_p_calculated"></span></div></div>
+ <div class="row" id="mb_p_amount_row" style="display:none"><label for="mb_p_amount">Belopp per månad</label><div class="field"><input id="mb_p_amount" type="number" min="1" step="100" value="" inputmode="numeric" /><span class="unit">kr/mån (före skatt)</span><span class="unit" id="mb_p_calculated_percent"></span></div></div>
+ <div class="row"><label for="mb_p_years">Antal år (första perioden)</label><div class="field"><input class="short" id="mb_p_years" type="number" min="1" max="40" value="15" inputmode="numeric" /><span class="unit">år</span></div></div>
+ <div id="mb_p_warn" class="warn">Kontrollera pensionsålder, pensionsmål och antal år.</div>
+   <textarea class="mb-added-free" id="mb_pension_free_text" placeholder="Skriv kundens mål"></textarea>
+   </div>
+   <div class="mb-goal-card-output">
+    <h3>Sammanställd text</h3>
+    <div id="mb_output" class="mb-out">— tomt —</div>
+    <div class="btns"><button class="btn btn-primary" id="mb_btn_add" title="Välj när du vill generera och kopiera måltexten." type="button">Kopiera måltext</button></div>
+   </div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_pension_early" data-goal-card-area="pension">
+ <header><h2>Att kunna gå i pension tidigare eller gå ner i arbetstid</h2></header>
+ <div class="content"><div class="mb-goal-template-options"><label><input type="radio" id="mb_template_pension_early" name="mb_template_pension_early" value="single" checked /> Fritext</label></div><div class="mb-goal-card-layout"><div>
+  <label for="mb_pension_early_text" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Måltext</label>
+  <textarea id="mb_pension_early_text" placeholder="Skriv kundens mål"></textarea>
+ </div><div class="mb-goal-card-output"><h3>Sammanställd text</h3><div id="mb_pension_early_output" class="mb-out">— tomt —</div><div class="btns"><button class="btn btn-primary" id="mb_pension_early_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div></div></div></div>
+ </section>
+ <section class="card mb-goal-card" id="mb_pension_tp" data-goal-card-area="pension">
+ <header><h2>Att se över min tjänstepension</h2></header>
+ <div class="content">
+  <div class="mb-goal-template-options"><label><input type="radio" id="mb_template_pension_tp" name="mb_template_pension_tp" value="single" checked /> Standardtext</label><label><input type="radio" id="mb_template_pension_tp_free" name="mb_template_pension_tp" value="free" /> Fritext</label></div>
+  <div class="mb-goal-card-layout">
+   <div><textarea class="mb-added-free" id="mb_pension_tp_free_text" placeholder="Skriv kundens mål"></textarea></div>
+   <div class="mb-goal-card-output">
+    <h3>Sammanställd text</h3>
+    <div id="mb_tp_output" class="mb-out">Vi ska se över så tjänstepensionen ligger optimalt placerad utifrån dina förutsättningar och önskemål samt se över ditt behov om återbetalningsskydd.</div>
+    <div class="btns"><button class="btn btn-primary" id="mb_btn_tp_output_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div>
+   </div>
+  </div>
+ </div>
+ </section>
+ <section class="card mb-goal-card" id="mb_pension_other" data-goal-card-area="pension">
+ <header><h2>Andra mål – Pension</h2></header>
+ <div class="content"><div class="mb-goal-template-options"><label><input type="radio" id="mb_template_pension_other" name="mb_template_pension_other" value="single" checked /> Fritext</label></div><div class="mb-goal-card-layout"><div>
+  <label for="mb_pension_other_text" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Måltext</label>
+  <textarea id="mb_pension_other_text" placeholder="Skriv kundens mål"></textarea>
+ </div><div class="mb-goal-card-output"><h3>Sammanställd text</h3><div id="mb_pension_other_output" class="mb-out">— tomt —</div><div class="btns"><button class="btn btn-primary" id="mb_pension_other_copy" title="Välj när du vill kopiera måltexten." type="button">Kopiera måltext</button></div></div></div></div>
+ </section>
+ <section class="card" id="mb_gift">
+ <header aria-expanded="false"><h2>Gåva</h2><button class="collapse-toggle" type="button" aria-controls="mb_gift_body">Expandera</button></header>
+ <div class="content" id="mb_gift_body">
+ <div class="row"><label>Mottagare</label><div class="field"><label style="display:flex;align-items:center;gap:6px"><input type="radio" name="gift_rec" id="gift_rec_child" checked /> barn</label><label style="display:flex;align-items:center;gap:6px"><input type="radio" name="gift_rec" id="gift_rec_grand" /> barnbarn</label></div></div>
+ <div class="row"><label for="gift_age">Ålder (år) när pengarna ska finnas</label><div class="field"><input class="short" id="gift_age" type="number" min="1" max="30" value="18" inputmode="numeric" /><span class="unit">år</span></div></div>
+ <div class="row"><label for="gift_amt">Målsumma (kr)</label><div class="field"><input id="gift_amt" type="number" min="0" step="100" value="200000" inputmode="numeric" /><span class="unit">kr</span></div></div>
+ <div id="gift_warn" class="warn">Kontrollera fälten: ålder 1–30 och belopp &gt; 0.</div>
+ <div class="btns"><button class="btn btn-primary" id="gift_btn_add" title="Välj när du vill generera och direkt kopiera ett gåvomål för barn eller barnbarn." type="button">Kopiera gåva</button></div>
+ </div>
+ </section>
+ <section class="card" id="mb_gift_out">
+ <header aria-expanded="false"><h2>Gåva – sammanställd text</h2><button class="collapse-toggle" type="button" aria-controls="mb_gift_out_body">Expandera</button></header>
+ <div class="content mb-right" id="mb_gift_out_body"><div id="gift_output" class="mb-out">— tomt —</div></div>
+ </section>
+ <section class="card" id="mb_forv">
+ <header aria-expanded="false"><h2>Övriga mål</h2><button class="collapse-toggle" type="button" aria-controls="mb_forv_body" onclick="event.preventDefault();event.stopPropagation();(function(){var l=document.querySelector('#mb_forv>header'),r=document.querySelector('#mb_forv_out>header'),lb=document.querySelector('#mb_forv .collapse-toggle'),rb=document.querySelector('#mb_forv_out .collapse-toggle'),on=!(l&&l.getAttribute('aria-expanded')==='true');if(l)l.setAttribute('aria-expanded',on?'true':'false');if(r)r.setAttribute('aria-expanded',on?'true':'false');if(lb)lb.textContent=on?'Komprimera':'Expandera';if(rb)rb.textContent=on?'Komprimera':'Expandera';})();return false;">Expandera</button></header>
+ <div class="content" id="mb_forv_body"><div class="row"><label for="forv_template">Välj text</label><div class="field"><select id="forv_template"><option value="">(välj)</option><option value="boende">Boende</option><option value="resa">Resa</option><option value="annatmal">Annat mål</option><option value="tradfond">Från trad till fond</option></select></div></div><div class="btns" style="margin-top:8px"><button class="btn btn-ghost" id="forv_add" title="Lägg till eller ta bort valt övrigt mål." type="button">Lägg till</button></div></div>
+ </section>
+ <section class="card" id="mb_forv_out">
+ <header aria-expanded="false"><h2>Övriga mål – sammanställd text</h2><button class="collapse-toggle" type="button" aria-controls="mb_forv_out_body" onclick="event.preventDefault();event.stopPropagation();(function(){var l=document.querySelector('#mb_forv>header'),r=document.querySelector('#mb_forv_out>header'),lb=document.querySelector('#mb_forv .collapse-toggle'),rb=document.querySelector('#mb_forv_out .collapse-toggle'),on=!(l&&l.getAttribute('aria-expanded')==='true');if(l)l.setAttribute('aria-expanded',on?'true':'false');if(r)r.setAttribute('aria-expanded',on?'true':'false');if(lb)lb.textContent=on?'Komprimera':'Expandera';if(rb)rb.textContent=on?'Komprimera':'Expandera';})();return false;">Expandera</button></header>
+ <div class="content mb-right" id="mb_forv_out_body"><div id="forv_output" class="mb-out" contenteditable="true" role="textbox" aria-multiline="true">— tomt —</div><div class="btns" style="margin-top:8px"><button class="btn btn-primary" id="forv_copy" type="button">Kopiera</button></div></div>
+ </section>
+ </div>
+</main>
+<div aria-labelledby="mbrikt_title" aria-modal="true" class="backdrop" id="mbrikt_backdrop" role="dialog" style="display:none"><div class="modal"><header><h2 id="mbrikt_title">Riktålder – minneslapp</h2></header><div class="body"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end"><div><label for="mbrikt_year" style="display:block;color:#cbd5e1;font-size:13px;margin-bottom:6px">Födelseår</label><input id="mbrikt_year" type="number" min="1900" max="2100" placeholder="t.ex. 1976" style="width:100%;background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px" /></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:12px;color:#9ca3af">Tidigast</div><div id="mbrikt_out_earliest" style="font-weight:700">–</div></div><div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px"><div style="font-size:12px;color:#9ca3af">Riktålder</div><div id="mbrikt_out_age" style="font-weight:700">–</div></div></div></div><div id="mbrikt_warn" class="warn">Fyll ett födelseår inom tabellen.</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-primary" id="mbrikt_set_earliest" title="Välj när du vill sätta pensionsåldern till tidigast möjliga ålder enligt riktålderstabellen." type="button">Sätt pensionsålder = Tidigast</button><button class="btn btn-primary" id="mbrikt_set_rikt" title="Välj när du vill sätta pensionsåldern till riktålder enligt riktålderstabellen." type="button">Sätt pensionsålder = Riktålder</button><div style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-ghost" id="mbrikt_close" type="button">Stäng</button></div></div><details id="mbrikt_tbl_wrap" style="margin-top:6px"><summary>Visa tabell</summary><div style="overflow:auto;margin-top:8px"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;border-bottom:1px solid var(--line);padding:6px 8px">Från</th><th style="text-align:left;border-bottom:1px solid var(--line);padding:6px 8px">Till</th><th style="text-align:left;border-bottom:1px solid var(--line);padding:6px 8px">Tidigast</th><th style="text-align:left;border-bottom:1px solid var(--line);padding:6px 8px">Riktålder</th></tr></thead><tbody id="mbrikt_tbl_body"></tbody></table></div></details></div><div class="actions"><button class="btn-link" id="mbrikt_close2" type="button">Stäng</button></div></div></div>
+<!-- Goalsetting: toast -->
+<script>
+(function(){
+ const toast=document.getElementById('toast');
+ function showToast(msg){ if(!toast) return; toast.textContent='✓ '+msg; toast.style.display='block'; toast.classList.add('show'); clearTimeout(toast.__to); toast.__to=setTimeout(function(){ toast.classList.remove('show'); setTimeout(function(){ if(!toast.classList.contains('show')) toast.style.display='none'; },170); },2200); }
+ window.stod1ShowToast = showToast;
+})();
+</script>
+<!-- Goalsetting: riktålder -->
+<script>
+(function(){
+ function q(id){return document.getElementById(id);} var bd=q('mbrikt_backdrop'); if(!bd) return;
+ var btn=q('mb_rikt_info'), inp=q('mbrikt_year'), outE=q('mbrikt_out_earliest'), outR=q('mbrikt_out_age'), setR=q('mbrikt_set_rikt'), setE=q('mbrikt_set_earliest'), close=q('mbrikt_close'), close2=q('mbrikt_close2'), tbody=q('mbrikt_tbl_body'), pAge=q('mb_p_age'), warn=q('mbrikt_warn');
+ var RIKT_TABLE = [
+ {from:1958, to:1958, earliest:61, rikt:67},
+ {from:1959, to:1959, earliest:62, rikt:67},
+ {from:1960, to:1960, earliest:62, rikt:68},
+ {from:1961, to:1962, earliest:63, rikt:67},
+ {from:1963, to:1966, earliest:64, rikt:67},
+ {from:1967, to:1969, earliest:64, rikt:68},
+ {from:1970, to:1981, earliest:65, rikt:68},
+ {from:1982, to:1984, earliest:65, rikt:69},
+ {from:1985, to:1997, earliest:66, rikt:69},
+ {from:1998, to:2000, earliest:66, rikt:70},
+ {from:2001, to:2014, earliest:67, rikt:70}
+ ];
+ function riktFind(year){ year=Number(year); if(!year || !isFinite(year)) return null; for(var i=0;i<RIKT_TABLE.length;i++){ var r=RIKT_TABLE[i]; if(year>=r.from && year<=r.to) return r; } return null; }
+ function open(){ bd.style.display='block'; compute(); inp.focus(); }
+ var bdPress=false;
+ function closeM(){ bd.style.display='none'; }
+ function setWarn(show){ if(warn) warn.style.display=show?'block':'none'; }
+ function compute(){ var y=(inp.value||'').trim(); var row=riktFind(y); outE.textContent=row?row.earliest:'—'; outR.textContent=row?row.rikt:'—'; if(row) setWarn(false); return row; }
+ function glow(el){ if(!el) return; var prev=el.style.boxShadow; el.style.boxShadow='0 0 0 6px var(--activeGlow)'; setTimeout(function(){ el.style.boxShadow=prev||''; }, 900); }
+ if(btn) btn.addEventListener('click', open);
+ if(close) close.addEventListener('click', closeM); if(close2) close2.addEventListener('click', closeM);
+ bd.addEventListener('mousedown', function(e){ bdPress=(e.target===bd); });
+ bd.addEventListener('click', function(e){ if(e.target===bd && bdPress) closeM(); bdPress=false; });
+ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeM(); });
+ if(inp) inp.addEventListener('input', compute);
+ if(tbody) tbody.innerHTML = RIKT_TABLE.map(function(r){ return '<tr>'+'<td style="border-bottom:1px solid var(--line);padding:6px 8px">'+r.from+'</td>'+'<td style="border-bottom:1px solid var(--line);padding:6px 8px">'+r.to+'</td>'+'<td style="border-bottom:1px solid var(--line);padding:6px 8px">'+r.earliest+'</td>'+'<td style="border-bottom:1px solid var(--line);padding:6px 8px">'+r.rikt+'</td>'+'</tr>'; }).join('');
+ if(setR) setR.addEventListener('click', function(){ var row=compute(); if(!row){ setWarn(true); return; } pAge.value=row.rikt; glow(pAge); closeM(); if(window.stod1ShowToast) window.stod1ShowToast('Pensionsålder satt till riktålder.'); });
+ if(setE) setE.addEventListener('click', function(){ var row=compute(); if(!row){ setWarn(true); return; } pAge.value=row.earliest; glow(pAge); closeM(); if(window.stod1ShowToast) window.stod1ShowToast('Pensionsålder satt till tidigaste.'); });
+})();
+</script>
+<!-- Goalsetting: fritextalternativ befintliga målkort -->
+<script>
+(function(){
+ var configs=[
+  {base:'mb_template_gift_goal',input:'mb_gift_goal_free_text',output:'mb_gift_goal_output'},
+  {base:'mb_template_realize_travel',input:'mb_realize_travel_free_text',output:'mb_realize_travel_output'},
+  {base:'mb_template_realize_housing',input:'mb_realize_housing_free_text',output:'mb_realize_housing_output'},
+  {base:'mb_template_pension',input:'mb_pension_free_text',output:'mb_output'},
+  {base:'mb_template_pension_tp',input:'mb_pension_tp_free_text',output:'mb_tp_output'}
+ ];
+ configs.forEach(function(config){
+  var standard=document.getElementById(config.base), free=document.getElementById(config.base+'_free'), input=document.getElementById(config.input), output=document.getElementById(config.output); if(!standard||!free||!input||!output) return;
+  var standardText=output.textContent;
+  function sync(){ var useFree=free.checked; input.style.display=useFree?'block':'none'; if(useFree){ output.textContent=(input.value||'').trim()||'— tomt —'; } else if(standard.checked){ if(output.textContent==='— tomt —'||output.textContent===(input.value||'').trim()) output.textContent=standardText; } }
+  standard.addEventListener('change',function(){ setTimeout(sync,0); }); free.addEventListener('change',sync); input.addEventListener('input',sync); sync();
+ });
+})();
+</script>
+<!-- Goalsetting: fritextkort andra mål förvalta -->
+<script>
+(function(){
+ var card=document.getElementById('mb_manage_other'), choice=document.getElementById('mb_goal_manage_other'), input=document.getElementById('mb_manage_other_text'), output=document.getElementById('mb_manage_other_output'), copyBtn=document.getElementById('mb_manage_other_copy'); if(!card||!choice||!input||!output||!copyBtn) return;
+ function syncVisibility(){ card.style.display=choice.checked?'block':'none'; } function syncText(){ output.textContent=(input.value||'').trim()||'— tomt —'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ choice.addEventListener('change',syncVisibility); input.addEventListener('input',syncText); copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —') return; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); }); syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: målkort långsiktigt kapital -->
+<script>
+(function(){
+ var card=document.getElementById('mb_manage_capital'), choice=document.getElementById('mb_goal_manage_capital'), fixed=document.getElementById('mb_manage_capital_fixed'), free=document.getElementById('mb_manage_capital_free'), sources=document.getElementById('mb_manage_capital_sources'), existing=document.getElementById('mb_manage_capital_existing'), surplus=document.getElementById('mb_manage_capital_surplus'), input=document.getElementById('mb_manage_capital_text'), output=document.getElementById('mb_manage_capital_output'), copyBtn=document.getElementById('mb_manage_capital_copy');
+ if(!card||!choice||!fixed||!free||!sources||!existing||!surplus||!input||!output||!copyBtn) return;
+ var COMMON='Målet är att bygga upp ett kapital som ger dig större ekonomisk handlingsfrihet inför framtida behov. Du har i dag inget bestämt målbelopp eller någon planerad tidpunkt för uttag. Du accepterar att värdet kan variera för att få möjlighet till långsiktig värdetillväxt.';
+ var EXISTING='Du har ett befintligt kapital från tidigare sparande som du inte behöver för löpande utgifter eller som kontantbuffert. ';
+ var SURPLUS='Du har ett löpande ekonomiskt överskott och vill avsätta en del av det till ett långsiktigt sparande. ';
+ function syncVisibility(){ card.style.display=choice.checked?'block':'none'; }
+ function syncText(){ var fixedOn=fixed.checked, freeOn=free.checked; sources.style.display=fixedOn?'flex':'none'; input.style.display=freeOn?'block':'none'; if(freeOn){ output.textContent=(input.value||'').trim()||'— tomt —'; return; } if(fixedOn){ output.textContent=existing.checked?EXISTING+COMMON:(surplus.checked?SURPLUS+COMMON:'— tomt —'); return; } output.textContent='— tomt —'; }
+ function exclusive(selected, other){ if(selected.checked) other.checked=false; syncText(); }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ choice.addEventListener('change',syncVisibility); fixed.addEventListener('change',syncText); free.addEventListener('change',syncText); existing.addEventListener('change',function(){ exclusive(existing,surplus); }); surplus.addEventListener('change',function(){ exclusive(surplus,existing); }); input.addEventListener('input',syncText);
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —') return; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: målkort se över sparande -->
+<script>
+(function(){
+ var card=document.getElementById('mb_manage_review'), choice=document.getElementById('mb_goal_manage_review'), risk=document.getElementById('mb_manage_review_risk'), free=document.getElementById('mb_manage_review_free'), input=document.getElementById('mb_manage_review_text'), output=document.getElementById('mb_manage_review_output'), copyBtn=document.getElementById('mb_manage_review_copy');
+ if(!card||!choice||!risk||!free||!input||!output||!copyBtn) return;
+ var RISK_TEXT='Målet med rådgivningen är att se över ditt befintliga sparande och öka möjligheten till högre avkastning genom en mer aktieinriktad placering. Du sparar i dag i traditionell förvaltning hos Folksam men vill, med hänsyn till din långa spartid och vilja att ta högre risk, ändra förvaltningsformen till fondförvaltning. Du är införstådd med att värdet kan variera mer och att en högre risk inte garanterar en högre avkastning.';
+ function syncVisibility(){ card.style.display=choice.checked?'block':'none'; }
+ function syncText(){ var useFree=free.checked; input.style.display=useFree?'block':'none'; output.textContent=useFree?((input.value||'').trim()||'— tomt —'):RISK_TEXT; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ choice.addEventListener('change',syncVisibility); risk.addEventListener('change',syncText); free.addEventListener('change',syncText); input.addEventListener('input',syncText);
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —') return; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: fritextkort andra mål förverkliga -->
+<script>
+(function(){
+ var card=document.getElementById('mb_realize_other'), choice=document.getElementById('mb_goal_realize_other'), input=document.getElementById('mb_realize_other_text'), output=document.getElementById('mb_realize_other_output'), copyBtn=document.getElementById('mb_realize_other_copy');
+ if(!card||!choice||!input||!output||!copyBtn) return;
+ function syncVisibility(){ card.style.display=choice.checked?'block':'none'; }
+ function syncText(){ var text=(input.value||'').trim(); output.textContent=text||'— tomt —'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ choice.addEventListener('change',syncVisibility); input.addEventListener('input',syncText);
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —') return; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: målkort framtida boende -->
+<script>
+(function(){
+ var card=document.getElementById('mb_realize_housing'), choice=document.getElementById('mb_goal_realize_housing'), amount=document.getElementById('mb_realize_housing_amount'), years=document.getElementById('mb_realize_housing_years'), output=document.getElementById('mb_realize_housing_output'), copyBtn=document.getElementById('mb_realize_housing_copy'), warn=document.getElementById('mb_realize_housing_warn');
+ if(!card||!choice||!amount||!years||!output||!copyBtn||!warn) return;
+ function fmt(n){ try{return new Intl.NumberFormat('sv-SE').format(Number(n)).replace(/\u00A0/g,' ');}catch(e){return String(n);} }
+ function build(){ var amountValue=Number(amount.value), yearValue=Number(years.value); if(!isFinite(amountValue)||amountValue<=0||!isFinite(yearValue)||yearValue<=0) return ''; return 'Målet är att spara ihop '+fmt(Math.round(amountValue))+' kronor under '+fmt(Math.round(yearValue))+' år till en kontantinsats för ett framtida boende.'; }
+ function syncVisibility(){ card.style.display=choice.checked?'block':'none'; }
+ function syncText(){ var text=build(); output.textContent=text||'— tomt —'; if(text) warn.style.display='none'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ choice.addEventListener('change',syncVisibility);
+ [amount,years].forEach(function(field){ field.addEventListener('input',syncText); field.addEventListener('change',syncText); });
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —'){ warn.style.display='block'; return; } warn.style.display='none'; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: målkort resa -->
+<script>
+(function(){
+ var card=document.getElementById('mb_realize_travel'), choice=document.getElementById('mb_goal_realize_travel'), years=document.getElementById('mb_realize_travel_years'), amount=document.getElementById('mb_realize_travel_amount'), output=document.getElementById('mb_realize_travel_output'), copyBtn=document.getElementById('mb_realize_travel_copy'), warn=document.getElementById('mb_realize_travel_warn');
+ if(!card||!choice||!years||!amount||!output||!copyBtn||!warn) return;
+ function fmt(n){ try{return new Intl.NumberFormat('sv-SE').format(Number(n)).replace(/\u00A0/g,' ');}catch(e){return String(n);} }
+ function build(){ var yearValue=Number(years.value), amountValue=Number(amount.value); if(!isFinite(yearValue)||yearValue<=0||!isFinite(amountValue)||amountValue<=0) return ''; return 'Du vill spara ihop en större summa för att kunna göra en längre resa med familjen om '+fmt(Math.round(yearValue))+' år. Målet är att spara ihop '+fmt(Math.round(amountValue))+' kronor tills dess.'; }
+ function syncVisibility(){ card.style.display=choice.checked?'block':'none'; }
+ function syncText(){ var text=build(); output.textContent=text||'— tomt —'; if(text) warn.style.display='none'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ choice.addEventListener('change',syncVisibility);
+ [years,amount].forEach(function(field){ field.addEventListener('input',syncText); field.addEventListener('change',syncText); });
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —'){ warn.style.display='block'; return; } warn.style.display='none'; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: fritextkort andra mål gåva -->
+<script>
+(function(){
+ var card=document.getElementById('mb_gift_other'), choice=document.getElementById('mb_goal_gift_other'), input=document.getElementById('mb_gift_other_text'), output=document.getElementById('mb_gift_other_output'), copyBtn=document.getElementById('mb_gift_other_copy');
+ if(!card||!choice||!input||!output||!copyBtn) return;
+ function syncVisibility(){ card.style.display=choice.checked?'block':'none'; }
+ function syncText(){ var text=(input.value||'').trim(); output.textContent=text||'— tomt —'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ choice.addEventListener('change',syncVisibility); input.addEventListener('input',syncText);
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —') return; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: målkort gåva -->
+<script>
+(function(){
+ var card=document.getElementById('mb_gift_goal'), choice=document.getElementById('mb_goal_gift_main'), child=document.getElementById('mb_gift_goal_child'), grandchild=document.getElementById('mb_gift_goal_grandchild'), amount=document.getElementById('mb_gift_goal_amount'), years=document.getElementById('mb_gift_goal_years'), output=document.getElementById('mb_gift_goal_output'), copyBtn=document.getElementById('mb_gift_goal_copy'), warn=document.getElementById('mb_gift_goal_warn');
+ if(!card||!choice||!child||!grandchild||!amount||!years||!output||!copyBtn||!warn) return;
+ function fmt(n){ try{return new Intl.NumberFormat('sv-SE').format(Number(n)).replace(/\u00A0/g,' ');}catch(e){return String(n);} }
+ function build(){ var sum=Number(amount.value), yearValue=Number(years.value); if(!isFinite(sum)||sum<=0||!isFinite(yearValue)||yearValue<=0) return ''; var recipient=grandchild.checked?'barnbarn':'barn'; return 'Målet är att spara ihop '+fmt(Math.round(sum))+' kronor under '+fmt(Math.round(yearValue))+' år till en gåva till ditt '+recipient+'.'; }
+ function syncVisibility(){ card.style.display=choice.checked?'block':'none'; }
+ function syncText(){ var text=build(); output.textContent=text||'— tomt —'; if(text) warn.style.display='none'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ choice.addEventListener('change',syncVisibility);
+ [child,grandchild,amount,years].forEach(function(field){ field.addEventListener('input',syncText); field.addEventListener('change',syncText); });
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —'){ warn.style.display='block'; return; } warn.style.display='none'; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: fritextkort pension -->
+<script>
+(function(){
+ function init(config){
+  var card=document.getElementById(config.card), choice=document.getElementById(config.choice), input=document.getElementById(config.input), output=document.getElementById(config.output), copyBtn=document.getElementById(config.copy);
+  if(!card||!choice||!input||!output||!copyBtn) return;
+  function syncVisibility(){ card.style.display=choice.checked?'block':'none'; }
+  function syncText(){ var text=(input.value||'').trim(); output.textContent=text||'— tomt —'; }
+  async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+  choice.addEventListener('change',syncVisibility); input.addEventListener('input',syncText);
+  copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —') return; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+  syncVisibility(); syncText();
+ }
+ init({card:'mb_pension_early',choice:'mb_goal_pension_early',input:'mb_pension_early_text',output:'mb_pension_early_output',copy:'mb_pension_early_copy'});
+ init({card:'mb_pension_other',choice:'mb_goal_pension_other',input:'mb_pension_other_text',output:'mb_pension_other_output',copy:'mb_pension_other_copy'});
+})();
+</script>
+<!-- Goalsetting: målkort ekonomisk trygghet -->
+<script>
+(function(){
+ var card=document.getElementById('mb_trust_buffer'), goalChoice=document.getElementById('mb_goal_trust_buffer'), input=document.getElementById('mb_trust_buffer_text'), output=document.getElementById('mb_trust_buffer_output'), copyBtn=document.getElementById('mb_trust_buffer_copy');
+ if(!card || !goalChoice || !input || !output || !copyBtn) return;
+ function syncVisibility(){ card.style.display=goalChoice.checked?'block':'none'; }
+ function syncText(){ var text=(input.value||'').trim(); output.textContent=text||'— tomt —'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ goalChoice.addEventListener('change',syncVisibility);
+ input.addEventListener('input',syncText);
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text || text==='— tomt —') return; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: målkort tryggad familjeekonomi -->
+<script>
+(function(){
+ var card=document.getElementById('mb_trust_family'), goalChoice=document.getElementById('mb_goal_trust_family'), standard=document.getElementById('mb_template_trust_family'), raise=document.getElementById('mb_template_trust_family_raise'), free=document.getElementById('mb_template_trust_family_free'), amount=document.getElementById('mb_trust_family_amount'), raiseFields=document.getElementById('mb_trust_family_raise_fields'), current=document.getElementById('mb_trust_family_current'), next=document.getElementById('mb_trust_family_new'), background=document.getElementById('mb_trust_family_background'), freeText=document.getElementById('mb_trust_family_free_text'), output=document.getElementById('mb_trust_family_output'), copyBtn=document.getElementById('mb_trust_family_copy'), warn=document.getElementById('mb_trust_family_warn');
+ if(!card||!goalChoice||!standard||!raise||!free||!amount||!raiseFields||!current||!next||!background||!freeText||!output||!copyBtn||!warn) return;
+ function fmt(n){ try{return new Intl.NumberFormat('sv-SE').format(Number(n)).replace(/\u00A0/g,' ');}catch(e){return String(n);} }
+ function standardText(){ var value=Number(amount.value); return isFinite(value)&&value>0?'Målet är att skapa ekonomisk trygghet för din familj genom en livförsäkring på '+fmt(Math.round(value))+' kronor.':''; }
+ function raiseText(){ var from=Number(current.value), to=Number(next.value), reason=(background.value||'').trim(); if(!isFinite(from)||from<=0||!isFinite(to)||to<=0) return ''; return 'Du har idag en befintlig livförsäkring på '+fmt(Math.round(from))+' kronor. Målet är att höja den till '+fmt(Math.round(to))+' kronor. Bakgrunden är'+(reason?' '+reason:''); }
+ function syncVisibility(){ card.style.display=goalChoice.checked?'block':'none'; }
+ function syncText(){ var useRaise=raise.checked, useFree=free.checked; amount.closest('.row').style.display=standard.checked?'grid':'none'; raiseFields.style.display=useRaise?'block':'none'; background.style.display=useRaise?'block':'none'; freeText.style.display=useFree?'block':'none'; var text=useRaise?raiseText():(useFree?(freeText.value||'').trim():standardText()); output.textContent=text||'— tomt —'; if(text) warn.style.display='none'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ goalChoice.addEventListener('change',syncVisibility); [standard,raise,free,amount,current,next,background,freeText].forEach(function(field){ field.addEventListener('input',syncText); field.addEventListener('change',syncText); });
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text||text==='— tomt —'){ warn.style.display='block'; return; } warn.style.display='none'; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: målkort andra mål trygghet -->
+<script>
+(function(){
+ var card=document.getElementById('mb_trust_other'), goalChoice=document.getElementById('mb_goal_trust_other'), input=document.getElementById('mb_trust_other_text'), output=document.getElementById('mb_trust_other_output'), copyBtn=document.getElementById('mb_trust_other_copy');
+ if(!card || !goalChoice || !input || !output || !copyBtn) return;
+ function syncVisibility(){ card.style.display=goalChoice.checked?'block':'none'; }
+ function syncText(){ var text=(input.value||'').trim(); output.textContent=text||'— tomt —'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); }catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ goalChoice.addEventListener('change',syncVisibility);
+ input.addEventListener('input',syncText);
+ copyBtn.addEventListener('click',function(){ var text=(output.textContent||'').trim(); if(!text || text==='— tomt —') return; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Måltext kopierad.'); }); });
+ syncVisibility(); syncText();
+})();
+</script>
+<!-- Goalsetting: huvudområdesväxling -->
+<script>
+(function(){
+ var tabs=[].slice.call(document.querySelectorAll('.mb-goal-area[data-area]'));
+ var panels=[].slice.call(document.querySelectorAll('.mb-goal-panel[data-goal-panel]'));
+ function show(area){
+  tabs.forEach(function(tab){ var active=tab.dataset.area===area; tab.classList.toggle('active',active); if(active) tab.setAttribute('aria-current','page'); else tab.removeAttribute('aria-current'); });
+  panels.forEach(function(panel){ panel.classList.toggle('active',panel.dataset.goalPanel===area); });
+  [].slice.call(document.querySelectorAll('[data-goal-card-area]')).forEach(function(card){ card.style.visibility=card.dataset.goalCardArea===area?'visible':'hidden'; card.style.position=card.dataset.goalCardArea===area?'relative':'absolute'; card.style.pointerEvents=card.dataset.goalCardArea===area?'auto':'none'; });
+ }
+ tabs.forEach(function(tab){ tab.addEventListener('click',function(){ show(tab.dataset.area); }); });
+ show('pension');
+})();
+</script>
+<!-- Goalsetting: pension -->
+<script>
+(function(){
+ function q(id){return document.getElementById(id);} var card=q('mb_pension'), goalChoice=q('mb_goal_pension_better'); if(!card || !goalChoice) return;
+ function syncGoalVisibility(){ card.style.display=goalChoice.checked?'block':'none'; }
+ goalChoice.addEventListener('change', syncGoalVisibility);
+ syncGoalVisibility();
+ var age=q('mb_p_age'), income=q('mb_p_income'), percent=q('mb_p_percent'), amount=q('mb_p_amount'), percentRow=q('mb_p_percent_row'), amountRow=q('mb_p_amount_row'), calculated=q('mb_p_calculated'), calculatedPercent=q('mb_p_calculated_percent'), modePercent=q('mb_p_mode_percent'), modeAmount=q('mb_p_mode_amount'), yrs=q('mb_p_years'), out=q('mb_output'), btnCopyOut=q('mb_btn_copy_output'), warn=q('mb_p_warn');
+ var inputMode='percent';
+ function fmt(n){ try{return new Intl.NumberFormat('sv-SE').format(Number(n)).replace(/\u00A0/g,' ');}catch(e){return String(n);} }
+ function setWarn(show){ if(warn) warn.style.display=show?'block':'none'; }
+ function goalAmount(){ var i=Number(income.value); if(inputMode==='amount'){ var m=Number(amount.value); return isFinite(i)&&i>0&&isFinite(m)&&m>0 ? Math.round(m) : 0; } var p=Number(percent.value); return isFinite(i)&&i>0&&isFinite(p)&&p>0 ? Math.round(i*p/100) : 0; }
+ function goalPercent(){ var i=Number(income.value), m=goalAmount(); if(inputMode==='percent'){ var p=Number(percent.value); return isFinite(i)&&i>0&&isFinite(p)&&p>0 ? p : 0; } return isFinite(i)&&i>0&&m>0 ? Math.round((m/i*100)*10)/10 : 0; }
+ function setMode(mode){ inputMode=mode==='amount'?'amount':'percent'; var i=Number(income.value); if(inputMode==='amount' && (!Number(amount.value)||Number(amount.value)<=0)){ var p=Number(percent.value); if(isFinite(i)&&i>0&&isFinite(p)&&p>0) amount.value=Math.round(i*p/100); } if(inputMode==='percent' && (!Number(percent.value)||Number(percent.value)<=0)){ var m=Number(amount.value); if(isFinite(i)&&i>0&&isFinite(m)&&m>0) percent.value=Math.round((m/i*100)*10)/10; } percentRow.style.display=inputMode==='percent'?'grid':'none'; amountRow.style.display=inputMode==='amount'?'grid':'none'; modePercent.checked=inputMode==='percent'; modeAmount.checked=inputMode==='amount'; syncGoal(); }
+ function syncGoal(){ var m=goalAmount(), p=goalPercent(), text=build(); calculated.textContent=inputMode==='percent'&&m ? '= '+fmt(m)+' kr/mån' : ''; calculatedPercent.textContent=inputMode==='amount'&&p ? '= '+fmt(p)+' % av nuvarande inkomst' : ''; out.textContent=text||'— tomt —'; if(text) setWarn(false); }
+ function build(){ var a=Number(age.value), m=goalAmount(), y=Number(yrs.value), p=goalPercent(); if(!isFinite(a)||!isFinite(y)) return ''; if(a<60||a>70||m<=0||p<=0||y<1||y>40) return ''; return 'Målet är att du vill gå i pension vid '+a+' års ålder och under de första '+y+' åren ha en pension som motsvarar '+fmt(p)+' % av din dåvarande slutlön. Utifrån din nuvarande inkomst motsvarar målet i dag '+fmt(m)+' kr per månad före skatt.'; }
+ ['input','change'].forEach(function(ev){ [age,income,percent,amount,yrs].forEach(function(el){ if(el) el.addEventListener(ev,syncGoal); }); });
+ if(modePercent) modePercent.addEventListener('change',function(){ if(this.checked) setMode('percent'); });
+ if(modeAmount) modeAmount.addEventListener('change',function(){ if(this.checked) setMode('amount'); });
+ setMode('percent');
+ var bAdd=q('mb_btn_add'); if(bAdd){ bAdd.addEventListener('click', async function(){ var t=(out.textContent||'').trim(); if(!t || t==='— tomt —'){ setWarn(true); return; } setWarn(false); try{ await navigator.clipboard.writeText(t); }catch(e){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta);} if(window.stod1ShowToast) window.stod1ShowToast('Pensionsmål kopierat.'); }); } if(btnCopyOut){ btnCopyOut.addEventListener('click', async function(){ var t=(out.textContent||'').trim(); if(!t || t==='— tomt —') return; try{ await navigator.clipboard.writeText(t); }catch(e){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta);} if(window.stod1ShowToast) window.stod1ShowToast('Pensionsmål kopierat.'); }); }
+})();
+</script>
+<!-- Goalsetting: gåva -->
+<script>
+(function(){
+ function q(id){return document.getElementById(id);} var left=q('mb_gift'), right=q('mb_gift_out'); if(!left || !right) return;
+ var lh=left.querySelector(':scope > header'), rh=right.querySelector(':scope > header'); var lb=left.querySelector('.collapse-toggle'), rb=right.querySelector('.collapse-toggle');
+ function setLabel(btn,exp){ if(btn) btn.textContent = exp ? 'Komprimera' : 'Expandera'; }
+ function setExpanded(exp){ lh.setAttribute('aria-expanded',exp?'true':'false'); rh.setAttribute('aria-expanded',exp?'true':'false'); setLabel(lb,exp); setLabel(rb,exp); }
+ function onClick(){ var exp=lh.getAttribute('aria-expanded')==='true'; setExpanded(!exp); }
+ if(lb) lb.addEventListener('click', onClick); if(rb) rb.addEventListener('click', onClick); setExpanded(false);
+ var recGrand=q('gift_rec_grand'), age=q('gift_age'), amt=q('gift_amt'), out=q('gift_output'), btnCopyOut=q('gift_btn_copy_output'), warn=q('gift_warn');
+ function fmt(n){ try{return new Intl.NumberFormat('sv-SE').format(Number(n)).replace(/\u00A0/g,' ');}catch(e){return String(n);} }
+ function setWarn(show){ if(warn) warn.style.display=show?'block':'none'; }
+ function build(){ var r = recGrand && recGrand.checked ? 'barnbarn' : 'barn'; var a=Number(age.value), m=Number(amt.value); if(!isFinite(a)||!isFinite(m)||a<1||a>30||m<=0) return ''; return 'Målet är att spara till en gåva till ditt '+r+' som ska finnas vid '+a+' års ålder, med målsumma '+fmt(m)+' kronor.'; }
+ ['input','change'].forEach(function(ev){ [age,amt].forEach(function(el){ if(el) el.addEventListener(ev,function(){ if(build()) setWarn(false); }); }); });
+ var bAdd=q('gift_btn_add'); if(bAdd){ bAdd.addEventListener('click', async function(){ var t=build(); if(!t){ setWarn(true); return;} setWarn(false); out.textContent=t; try{ await navigator.clipboard.writeText(t); }catch(e){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta);} if(window.stod1ShowToast) window.stod1ShowToast('Gåva kopierad.'); }); } if(btnCopyOut){ btnCopyOut.addEventListener('click', async function(){ var t=(out.textContent||'').trim(); if(!t || t==='— tomt —') return; try{ await navigator.clipboard.writeText(t); }catch(e){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta);} if(window.stod1ShowToast) window.stod1ShowToast('Gåva kopierad.'); }); }
+})();
+</script>
+<!-- Goalsetting: annat mål -->
+<script>
+(function(){
+ function q(id){ return document.getElementById(id); }
+ function onReady(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', fn, { once:true }); else fn(); }
+ var map = {"boende":"Du bor idag i en hyresrätt men skulle vilja spara ihop en summa som kan användas som insats till ett framtida boende.\nMålet är att spara ihop XXX kronor om XXX år.","resa":"Du skulle vilja spara ihop en större summa för att kunna göra en längre resa med familjen om XXX år.\nMålet är att spara ihop XXX kronor tills dess.","annatmal":"Du skulle vilja spara ihop en större summa för att kunna XXX om XXX år.\nMålet är att spara ihop XXX kronor tills dess.","tradfond":"Målet med rådgivningen är att du vill se över ditt befintliga sparande och öka möjligheten till högre avkastning framöver. Du sparar i dag i traditionell förvaltning hos Folksam, men upplever att utvecklingen har varit låg och att möjligheten till högre avkastning är begränsad. Eftersom du har relativt lång tid kvar att spara vill du ta en högre risk och få större möjlighet till avkastning genom ett sparande med mer aktieinriktning. Du är medveten om att värdet kan svänga mer i ett fondsparande, men bedömer att spartiden ger möjlighet att hantera sådana svängningar. Du väljer därför att ändra förvaltningsform för det befintliga sparandet från traditionell förvaltning till fondförvaltning."};  
+ onReady(function(){
+  var sel=q('forv_template'), out=q('forv_output'), add=q('forv_add'), copy=q('forv_copy');
+  if(!sel || !out || !add) return;
+  function setActive(on){ add.classList.toggle('active', !!on); add.classList.toggle('btn-primary', !!on); add.classList.toggle('btn-ghost', !on); }
+  function isActive(){ return add.classList.contains('active'); }
+  function pick(){ return map[(sel.value||'').toLowerCase()] || ''; }
+  function persist(){ try{ localStorage.setItem('mb.forv.text.v1', out.textContent || ''); }catch(e){} }
+  function clear(){ out.textContent='— tomt —'; persist(); setActive(false); }
+  function apply(showToast){ var text=pick(); if(!text){ clear(); return; } out.textContent=text; persist(); setActive(true); if(showToast && window.stod1ShowToast) window.stod1ShowToast('Övriga mål: tillagd'); }
+  function restore(){ var saved=''; try{ saved=localStorage.getItem('mb.forv.text.v1') || ''; }catch(e){} out.textContent=saved || '— tomt —'; setActive(!!saved); }
+  add.addEventListener('click', function(e){ e.preventDefault(); if(isActive()){ clear(); if(window.stod1ShowToast) window.stod1ShowToast('Övriga mål: borttagen'); return; } apply(true); });
+  sel.addEventListener('change', function(){ if(isActive()) apply(false); });
+  out.addEventListener('input', function(){ persist(); setActive((out.textContent||'').trim() && (out.textContent||'').trim()!=='— tomt —'); });
+  if(copy) copy.addEventListener('click', function(e){ var txt=(out.textContent||'').trim(); if(!txt || txt==='— tomt —') return; e.preventDefault(); (async function(){ try{ await navigator.clipboard.writeText(txt); }catch(_){ var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(__){} document.body.removeChild(ta); } if(window.stod1ShowToast) window.stod1ShowToast('Text kopierad.'); })(); });
+  restore();
+ });
+})();
+</script>
+<!-- Goalsetting: expandera och komprimera alla -->
+<script>
+(function(){
+ function q(id){ return document.getElementById(id); }
+ function setLabel(btn, expanded){ if(btn) btn.textContent = expanded ? 'Komprimera' : 'Expandera'; }
+ function pairs(){ return [ ['mb_pension','mb_pension_out'], ['mb_gift','mb_gift_out'], ['mb_forv','mb_forv_out'] ].map(function(ids){ var left=q(ids[0]), right=q(ids[1]); if(!left || !right) return null; return { lh:left.querySelector(':scope > header'), rh:right.querySelector(':scope > header'), lb:left.querySelector('.collapse-toggle'), rb:right.querySelector('.collapse-toggle') }; }).filter(Boolean); }
+ function setPairExpanded(pair, expanded){ if(pair.lh) pair.lh.setAttribute('aria-expanded', expanded ? 'true' : 'false'); if(pair.rh) pair.rh.setAttribute('aria-expanded', expanded ? 'true' : 'false'); setLabel(pair.lb, expanded); setLabel(pair.rb, expanded); }
+ function allCollapsed(){ return pairs().every(function(pair){ return pair.lh && pair.lh.getAttribute('aria-expanded')==='false'; }); }
+ function updateBtn(){ var btn=q('mb_toggle_all'); if(btn) btn.textContent = allCollapsed() ? 'Expandera alla' : 'Komprimera alla'; }
+ function setAll(expanded){ pairs().forEach(function(pair){ setPairExpanded(pair, expanded); }); updateBtn(); }
+ function init(){ var btn=q('mb_toggle_all'); if(btn && !btn.dataset.bound){ btn.dataset.bound='1'; btn.addEventListener('click', function(){ setAll(allCollapsed()); }); } setAll(false); }
+ if(document.readyState==='loading') window.addEventListener('DOMContentLoaded', init, { once:true }); else init();
+ window.addEventListener('load', function(){ setAll(false); }, { once:true });
+ document.addEventListener('click', function(e){ if(e.target && e.target.closest && e.target.closest('.collapse-toggle')) setTimeout(updateBtn,0); });
+})();
+</script>
+<!-- Goalsetting: målkort tjänstepension -->
+<script>
+(function(){
+ var q=function(id){ return document.getElementById(id); };
+ var card=q('mb_pension_tp'), goalChoice=q('mb_goal_pension_tp'), copyBtn=q('mb_btn_tp_output_copy'), out=q('mb_tp_output');
+ if(!card || !goalChoice || !copyBtn || !out) return;
+ function syncVisibility(){ card.style.display=goalChoice.checked?'block':'none'; }
+ async function copyText(text){ try{ await navigator.clipboard.writeText(text); } catch(e){ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){} document.body.removeChild(ta); } }
+ goalChoice.addEventListener('change', syncVisibility);
+ copyBtn.addEventListener('click', function(e){ e.preventDefault(); var text=(out.textContent||'').trim(); if(!text || text==='— tomt —') return; copyText(text).then(function(){ if(window.stod1ShowToast) window.stod1ShowToast('Tjänstepensionsmål kopierat.'); }); });
+ syncVisibility();
+})();
+</script>
+<!-- Goalsetting: målräknare -->
+<script>
+(function(){
+ function update(area){
+  var count=[].slice.call(document.querySelectorAll('[data-goal-count="'+area+'"]')).filter(function(input){ return input.checked; }).length;
+  var output=document.getElementById('mb_goal_count_'+area); if(!output) return;
+  output.textContent=count ? '('+count+')' : '';
+  output.style.display=count ? 'inline' : 'none';
+ }
+ var areas=['trygghet','pension','gava','forverkliga','forvalta'];
+ areas.forEach(function(area){
+  [].slice.call(document.querySelectorAll('[data-goal-count="'+area+'"]')).forEach(function(input){ input.addEventListener('change', function(){ update(area); }); });
+  update(area);
+ });
+})();
+</script>
+<!-- Goalsetting: reset via hash -->
+<script>
+(function(){
+ function resetAll(){
+ var q = function(id){ return document.getElementById(id); };
+ if(q('mb_p_age')) q('mb_p_age').value=65;
+ if(q('mb_p_income')) q('mb_p_income').value='';
+ if(q('mb_p_percent')) q('mb_p_percent').value=100;
+ if(q('mb_p_amount')) q('mb_p_amount').value='';
+ if(q('mb_p_mode_percent')){ q('mb_p_mode_percent').checked=true; q('mb_p_mode_percent').dispatchEvent(new Event('change')); }
+ if(q('mb_p_years')) q('mb_p_years').value=15;
+ if(q('mb_output')) q('mb_output').textContent='— tomt —';
+ if(q('mb_p_warn')) q('mb_p_warn').style.display='none';
+ if(q('gift_rec_child')) q('gift_rec_child').checked=true;
+ if(q('gift_rec_grand')) q('gift_rec_grand').checked=false;
+ if(q('gift_age')) q('gift_age').value=18;
+ if(q('gift_amt')) q('gift_amt').value=200000;
+ if(q('gift_output')) q('gift_output').textContent='— tomt —';
+ if(q('gift_warn')) q('gift_warn').style.display='none';
+ if(q('mbrikt_warn')) q('mbrikt_warn').style.display='none';
+ if(q('forv_template')) q('forv_template').value='';
+ if(q('forv_output')) q('forv_output').textContent='— tomt —';
+ try{ localStorage.removeItem('mb.forv.text.v1'); }catch(_){ }
+ if(window.stod1ShowToast) window.stod1ShowToast('Allt rensat.');
+ }
+ function runResetHash(){ if(!/^#reset-(?:all|panel)(?:[-=]\d+)?$/.test(location.hash)) return; resetAll(); try{ history.replaceState(null,'', location.pathname + location.search); }catch(_){ } }
+ runResetHash(); window.addEventListener('hashchange', runResetHash);
+})();
+</script>
+<!-- Goalsetting: temasynk -->
+<script>
+(function(){
+ window.addEventListener('storage', function(e){ if(e.key==='stod1.theme.v1'){ var theme = e.newValue === 'light' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', theme); } });
+})();
+</script>
+</body>
+</html>

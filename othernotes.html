@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dokumentation</title>
+<script>
+(function(){
+ try{
+  var theme = localStorage.getItem('stod1.theme.v1') || 'dark';
+  if(theme !== 'light') theme = 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+ }catch(e){}
+})();
+</script>
+<style>
+ :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--line:#2b3545;--text:#e5e7eb;--muted:#9ca3af;--accent:#0ea5e9;--ink:#0b1220;--ink2:#030712;--focus:#60a5fa22;--activeGlow:#67e8f980}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+ header.app{padding:14px 16px;background:linear-gradient(90deg,var(--panel),#0b1020);border-bottom:1px solid #0b1020}
+ header.app h1{margin:0;font-size:18px}
+ main{display:grid;gap:16px;grid-template-columns:1.1fr 0.9fr;align-items:start;padding:0 16px 16px}
+ @media (max-width: 1000px){ main{grid-template-columns:1fr} }
+ .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+ .card>header{background:transparent;border-bottom:1px solid #283244;padding:12px 14px}
+ .card>header h2{margin:0;font-size:15px}
+ .content-title{margin:0;font-size:15px;font-weight:600;color:var(--text)}
+ .content{padding:14px 16px}
+ .stack{display:flex;flex-direction:column;gap:12px}
+ .btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+ .btn{appearance:button;-webkit-appearance:button;border-radius:8px;border:1px solid var(--line);padding:8px 12px;font-weight:600;cursor:pointer;transition:filter .15s, box-shadow .15s, border-color .15s}
+ .btn-primary{background:linear-gradient(180deg,var(--accent),#0284c7);color:#06253a;border-color:#67e8f9}
+ .btn-ghost{background:transparent;color:#cbd5e1}
+ .btn-primary:hover{filter:brightness(1.05)} .btn-ghost:hover{background:var(--ink)}
+ .btn.active{box-shadow:0 0 0 4px var(--activeGlow); border-color:#a5f3fc}
+ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible{outline:0;border-color:#3b82f6;box-shadow:0 0 0 2px var(--focus)}
+ .hr{height:1px;background:var(--line);margin:6px 0 0 0}
+ .row{display:grid;gap:10px;grid-template-columns:repeat(12,1fr);align-items:center}
+ .row label{grid-column:span 4;color:#cbd5e1;font-size:13px}
+ .row .field{grid-column:span 8;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.fm-compact-row{grid-template-columns:max-content 220px;column-gap:16px;justify-content:start}
+.fm-compact-row[hidden]{display:none}
+.fm-compact-row label,.fm-compact-row .field{grid-column:auto}
+.content > .row + .row{margin-top:10px}
+.content > .row + .warn{margin-top:10px}
+.content > .row + .btns{margin-top:16px}
+.content > .warn + .btns{margin-top:16px}
+.content > .btns + .row{margin-top:14px}
+ select, input[type=text], input[type=number], textarea{background:var(--ink);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;outline:none;min-width:0}
+ select:focus, input:focus, textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 2px var(--focus)}
+ .short{max-width:220px}
+ .ta-large{width:100%;min-height:140px;resize:vertical}
+
+ .out{white-space:pre-wrap;background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:12px;height:276px;min-height:276px;max-height:276px;overflow:auto}
+ #free_notes,#free_notes_extra{line-height:21px;height:102px;min-height:102px;max-height:102px;resize:none;overflow:auto}
+ .muted{color:#9ca3af;font-size:12px}
+ .warn{display:none;color:#fde68a;background:#251e0b;border:1px solid #795d19;border-radius:10px;padding:8px 10px;font-size:12px}
+ .await-save-grid{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(150px,1fr) minmax(180px,1fr) auto;gap:10px;align-items:end}
+ .await-save-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .await-save-field label{color:#cbd5e1;font-size:13px}
+ .await-save-grid .btn{align-self:end;height:40px}
+ .tp-inline-grid{display:grid;grid-template-columns:minmax(180px,1fr) minmax(160px,1fr) auto;gap:10px;align-items:end}
+ .tp-inline-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .tp-inline-field label{color:#cbd5e1;font-size:13px}
+ .tp-inline-grid .btn{align-self:end;height:40px}
+ .utfall-inline-grid{display:grid;grid-template-columns:minmax(150px,1fr) minmax(170px,1fr) minmax(170px,1fr) auto;gap:10px;align-items:end}
+ .utfall-inline-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .utfall-inline-field label{color:#cbd5e1;font-size:13px}
+ .utfall-inline-field select{width:100%;max-width:none}
+ .utfall-inline-grid .btn{align-self:end;height:40px}
+ .utfall-action-row{display:flex;justify-content:flex-start;align-items:center;margin-top:10px}
+ .utfall-action-row .btn{padding:7px 10px;font-size:12px;height:auto}
+ .content > .utfall-action-row + .warn{margin-top:10px}.risk-inline-grid{display:grid;grid-template-columns:minmax(160px,1fr) minmax(160px,1fr) auto;gap:10px;align-items:end}
+ .risk-inline-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .risk-inline-field label{color:#cbd5e1;font-size:13px}
+ .risk-inline-field select{width:100%;max-width:none}
+ .risk-inline-grid .btn{align-self:end;height:40px}
+ .content > .risk-inline-grid + .warn{margin-top:10px}
+ .single-action-inline{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}
+ .single-action-inline .btn{align-self:end;height:40px}
+ .tp-share-groups{display:grid;gap:12px}
+ .tp-share-group{display:grid;gap:8px}
+ .tp-share-label{color:#cbd5e1;font-size:13px}
+ .tp-share-options{display:flex;flex-wrap:wrap;gap:12px 16px}
+ .tp-share-options label{display:inline-flex;align-items:center;gap:6px;color:var(--text);font-size:14px}
+ .tp-share-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+ .tp-new-list{display:grid;gap:12px}
+ .tp-new-area{background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 12px;display:grid;gap:10px}
+ .tp-new-area-head{display:flex;align-items:center;gap:8px;font-weight:700}
+ .tp-new-area:not(.is-enabled){gap:0}
+ .tp-new-area:not(.is-enabled) .tp-new-grid,.tp-new-area:not(.is-enabled) .tp-new-outcomes{display:none}
+ .tp-new-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .tp-new-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+ .tp-new-field label{color:#cbd5e1;font-size:13px}
+ .tp-new-field select,.tp-new-field input{width:100%;max-width:none}
+ .tp-new-field select:disabled{opacity:.72;cursor:not-allowed;background:var(--line);color:var(--muted)}
+ .tp-new-outcomes{display:flex;flex-wrap:wrap;gap:10px 16px}
+ .tp-new-outcomes label,.tp-new-shared label{display:inline-flex;align-items:center;gap:6px}
+ .tp-new-shared{display:flex;align-items:center;gap:8px}
+ @media (max-width: 1200px){.tp-new-grid{grid-template-columns:1fr}}
+ :root[data-theme="light"] .tp-new-field label{color:#334155}
+
+ @media (max-width: 1200px){ .await-save-grid{grid-template-columns:1fr} .await-save-grid .btn{justify-self:start;height:auto} .tp-inline-grid{grid-template-columns:1fr} .tp-inline-grid .btn{justify-self:start;height:auto} .utfall-inline-grid{grid-template-columns:1fr} .utfall-inline-grid .btn{justify-self:start;height:auto} .risk-inline-grid{grid-template-columns:1fr} .risk-inline-grid .btn{justify-self:start;height:auto} .single-action-inline{grid-template-columns:1fr} .single-action-inline .btn{justify-self:start;height:auto} }
+ #toast{position:fixed;left:16px;top:10px;background:#111827;color:#e5e7eb;border:1px solid #3b4558;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;line-height:1.2;display:none;z-index:9999;box-shadow:0 8px 18px rgba(0,0,0,.28);opacity:0;transform:translateY(-6px);transition:opacity .16s ease, transform .16s ease}
+#toast.show{display:block;opacity:1;transform:translateY(0)}
+/* Collapse (alla kort i Övriga noteringar) */
+.card > header{position:relative}
+.collapse-toggle{position:absolute;right:12px;top:10px;background:transparent;color:#9ca3af;border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
+.collapse-toggle:hover{background:var(--ink)}
+.collapse-toggle:focus-visible{outline:0;border-color:#3b82f6;box-shadow:0 0 0 4px var(--focus)}
+.card > header[aria-expanded="false"] + .content{display:none}
+.notes-tools-row{grid-column:1/-1;display:grid;grid-template-columns:1.1fr 0.9fr;gap:16px;padding:16px 0 0 0}
+.notes-tools{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+.left-tools{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0}
+.left-tools .btn{padding:7px 10px;font-size:12px}
+:root[data-theme="light"]{
+ --bg:#f3f5f8;
+ --panel:#ffffff;
+ --card:#ffffff;
+ --line:#d6dde8;
+ --text:#0f172a;
+ --muted:#64748b;
+ --accent:#2563eb;
+ --ink:#ffffff;
+ --ink2:#f8fafc;
+ --focus:rgba(37,99,235,.14);
+ --activeGlow:rgba(37,99,235,.18);
+}
+:root[data-theme="light"] header.app{background:linear-gradient(90deg,var(--panel),#eef2f7);border-bottom:1px solid var(--line)}
+:root[data-theme="light"] .card>header{border-bottom:1px solid var(--line)}
+:root[data-theme="light"] .row label{color:#334155}
+:root[data-theme="light"] .await-save-field label{color:#334155}
+:root[data-theme="light"] .tp-inline-field label{color:#334155}
+:root[data-theme="light"] .risk-inline-field label{color:#334155}
+:root[data-theme="light"] .tp-share-label{color:#334155}
+:root[data-theme="light"] .unit{color:#64748b}
+:root[data-theme="light"] .btn-primary,
+:root[data-theme="light"] .gs-tab[aria-selected="true"]{background:linear-gradient(180deg,var(--accent),#1d4ed8);color:#ffffff;border-color:#2563eb}
+:root[data-theme="light"] .btn-ghost,
+:root[data-theme="light"] .gs-tab{color:#334155}
+:root[data-theme="light"] .btn-ghost:hover,
+:root[data-theme="light"] .collapse-toggle:hover,
+:root[data-theme="light"] .warn{color:#92400e;background:#fff7ed;border-color:#fdba74}
+:root[data-theme="light"] #toast{background:#ffffff;color:#0f172a;border-color:#cbd5e1;box-shadow:0 8px 18px rgba(15,23,42,.14)}
+:root[data-theme="light"] #rikt_modal,
+:root[data-theme="light"] #rikt_modal > div{background-color:transparent}
+:root[data-theme="light"] #rikt_modal{background:rgba(15,23,42,.18) !important}
+:root[data-theme="light"] .collapse-toggle{color:#64748b}
+</style>
+</head>
+<body>
+<main>
+ <div class="notes-tools-row"><div id="notes_tools_host" class="notes-tools"></div><div></div></div>
+ <div class="stack" id="notes_left_stack" style="gap:16px"><section class="card" data-order-id="grp"><header><h2>Grp/Skador (första utgående samtalet)</h2></header>
+ <div class="content">
+ <div class="btns"><button class="btn btn-ghost" id="btn_grp_copy" title="Välj när du i första utgående samtalet har pratat om gruppförsäkringar och skador." type="button">Lägg till</button></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="ppm"><header><h2>Premiepension</h2></header>
+ <div class="content stack">
+ <div class="btns" data-group="ppm">
+ <button class="btn btn-ghost" id="btn_ppm_byter" title="Välj när du har gett kunden ett allmänt råd att se över placeringarna." type="button">Allmänt råd</button>
+ <button class="btn btn-ghost" id="btn_ppm_behaller" title="Välj när du inte bedömer att kunden behöver se över den allmänna pensionen." type="button">Inget råd</button>
+ </div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ 
+ <section class="card" data-order-id="tp_new" data-card-hidden="1" data-card-kind="hybrid" data-hybrid-init="tpNewCard" data-storage-ns="othernotes.hybrid.tp_new" data-block-id="tp_new"><header><h2>Tjänstepension</h2></header>
+ <div class="content stack">
+ <div class="tp-new-shared"><label><input type="checkbox" data-role="shared">Delad skärm</label></div>
+ <div class="tp-new-list">
+  <div class="tp-new-area" data-area="saflo"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">SAF-LO</div><div class="tp-new-grid"><div class="tp-new-field"><label>Försäkring</label><select data-role="product"><option value="">(välj)</option><option>Folksam LO Fond</option><option>Folksam Tjänstepension</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="flytt">Flytt</label></div></div>
+  <div class="tp-new-area" data-area="akap"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">AKAP-KR/KAP-KL</div><div class="tp-new-grid"><div class="tp-new-field"><label>Försäkring</label><select data-role="product" disabled title="Fast val för avtalsområdet" aria-label="Försäkring, fast val"><option>Folksam LO Fond</option></select></div><div class="tp-new-field"><label>Valcentral</label><select data-role="valcentral"><option value="">(välj)</option><option>Pensionsvalet</option><option>Valcentralen</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="requested">Sammanställning begärd</label><label><input type="checkbox" data-role="received">Flytt genomförd</label></div></div>
+  <div class="tp-new-area" data-area="pa16"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">PA16</div><div class="tp-new-grid"><div class="tp-new-field"><label>Försäkring</label><select data-role="product" disabled title="Fast val för avtalsområdet" aria-label="Försäkring, fast val"><option>Folksam Fondförsäkring</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="requested">Sammanställning begärd</label><label><input type="checkbox" data-role="received">Flytt genomförd</label></div></div>
+  <div class="tp-new-area" data-area="itp"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">ITP</div><div class="tp-new-grid"><div class="tp-new-field"><label>Försäkring</label><select data-role="product" disabled title="Fast val för avtalsområdet" aria-label="Försäkring, fast val"><option>Folksam Tjänstepension</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="flytt">Flytt</label></div></div>
+  <div class="tp-new-area" data-area="other"><div class="tp-new-area-head"><input type="checkbox" data-role="enabled">Övriga</div><div class="tp-new-grid"><div class="tp-new-field"><label>Avtalsområde</label><input type="text" data-role="custom-area"></div><div class="tp-new-field"><label>Valcentral</label><input type="text" data-role="custom-valcentral"></div><div class="tp-new-field"><label>Försäkring</label><select data-role="product"><option value="">(välj)</option><option>Folksam LO Fond</option><option>Folksam Tjänstepension</option><option>Folksam Fondförsäkring</option></select></div></div><div class="tp-new-outcomes"><label><input type="checkbox" data-role="omval">Omval</label><label><input type="checkbox" data-role="flytt">Flytt</label></div></div>
+ </div>
+ <div class="warn"></div>
+ <div class="btns"><button class="btn btn-primary" type="button">Lägg till</button></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+<section class="card" data-order-id="hallbarhet" data-card-kind="hybrid" data-hybrid-init="hallbarhetCard" data-storage-ns="othernotes.hybrid.hallbarhet" data-block-id="hallbarhet"><header><h2>Hållbarhetspreferenser</h2></header>
+ <div class="content">
+ <div class="btns"><button class="btn btn-primary" type="button">Lägg till</button></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+<section class="card" data-order-id="schablon"><header><h2>Schablonberäkning</h2></header>
+ <div class="content">
+ <div class="btns"><button class="btn btn-primary" id="btn_schablon_add" title="Välj när pensionen har schablonberäknats i stället för att räknas på exakta uppgifter." type="button">Lägg till</button></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="fm"><header><h2>Förmånstagarförordnande</h2></header>
+ <div class="content">
+ <div class="btns"><label><input type="radio" name="fm_choice" value="same"> Ska inte ändras</label><label><input type="radio" name="fm_choice" value="change"> Ska ändras</label></div>
+ <div class="row fm-compact-row" id="fm_sandning_row" hidden><label for="fm_sandning">Skicka blankett via</label><div class="field"><select id="fm_sandning" class="short"><option value="">(välj)</option><option>E-post</option><option>Postadress</option></select></div></div>
+ <div id="fm_warn" class="warn">Välj <b>Ska inte ändras</b> eller <b>Ska ändras</b>. Vid ändring behöver du även välja hur blanketten ska skickas.</div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ 
+ <section class="card" data-order-id="buff" data-card-hidden="1"><header><h2>Begränsad buffert</h2></header>
+ <div class="content stack">
+ <div class="btns" data-group="buff">
+ <button class="btn btn-ghost" id="btn_buff_avr" title="Välj när du avråder från sparande eftersom buffert saknas och utrymme inte finns." type="button">Avrådan</button>
+ <button class="btn btn-ghost" id="btn_buff_utry" title="Välj när det finns utrymme för både sparande och att bygga upp en buffert." type="button">Utrymme finns</button>
+ </div>
+ <div class="hr"></div>
+ </div>
+ </section>
+ 
+ <section class="card" data-order-id="annat" data-card-hidden="1"><header><h2>Om ett annat mål hittats under rådgivningens gång</h2></header>
+ <div class="content">
+ <div class="row"><label for="annat_urspr">Ursprungsmål</label><div class="field"><select id="annat_urspr" class="short"><option value="">(välj)</option><option>pensionssparande</option><option>målsparande</option><option>barnsparande</option></select></div></div>
+ <div class="row"><label for="annat_tillagg">Tilläggsmål</label><div class="field"><select id="annat_tillagg" class="short"><option value="">(välj)</option><option>pensionssparande</option><option>målsparande</option><option>barnsparande</option></select></div></div>
+ <div id="annat_warn" class="warn">Välj både <b>Ursprungsmål</b> och <b>Tilläggsmål</b>.</div>
+ <div class="btns"><button class="btn btn-primary" id="btn_annat_add" title="Välj när ett annat mål har identifierats under rådgivningens gång." type="button">Lägg till</button></div>
+ <div class="hr"></div>
+ </div>
+ </section>
+
+ <section class="card" data-order-id="tp" data-card-hidden="1"><header><h2>Tjänstepension – skärmdelning/fullmakt</h2></header>
+ <div class="content">
+ <div class="tp-inline-grid">
+ <div class="tp-inline-field"><label for="tp_placeras">Placeras hos</label><select id="tp_placeras" class="short"><option value="">(välj)</option><option>Folksam tjänstepension</option><option>Folksam LO Fond</option></select></div>
+ <div class="tp-inline-field"><label for="tp_valcentral">Valcentral</label><select id="tp_valcentral" class="short"><option value="">(välj)</option><option>Fora</option><option>Avtalat</option><option>Pensionsvalet</option><option>Valcentralen</option></select></div>
+ <button class="btn btn-primary" id="btn_tp_add" title="Välj när omval eller flytt av tjänstepension görs via skärmdelning eller fullmakt." type="button">Lägg till</button>
+ </div>
+ <div id="tp_warn" class="warn">Välj både <b>Placeras hos</b> och <b>Valcentral</b>.</div>
+ <div class="hr"></div>
+ </div>
+ </section>
+    </div>
+ <!-- Högerspalt -->
+ <section class="card" id="sek_out"><header><h2>Sammanställd text</h2></header>
+ <div class="content stack">
+ <div id="output" class="out" aria-live="polite" aria-atomic="true">— tomt —</div>
+ <div class="btns"><button class="btn btn-primary" id="btn_copy" type="button">Kopiera</button></div>
+ <div class="hr"></div>
+ <div class="content-title">Egna tillägg</div>
+ <textarea id="free_notes" class="ta-large" rows="5" placeholder="Skriv övrig dokumentation här…"></textarea>
+ <div class="btns"><button class="btn btn-primary" id="btn_notes_update" type="button">Uppdatera egna tillägg</button></div>
+ <div class="hr"></div>
+ <!-- Egna noteringar (lokal, ej i Genererad) -->
+ <div class="content-title">Kom ihåg</div>
+ <textarea id="free_notes_extra" class="ta-large" rows="5" placeholder="Egna noteringar (sparas lokalt, ingår inte i Genererad text)…"></textarea>
+ 
+ </div>
+ </section>
+</main>
+<div id="toast"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+// safeStorage + toast
+const safeStorage = (()=>{try{const t='__t'+Math.random().toString(36).slice(2);localStorage.setItem(t,'1');localStorage.removeItem(t);return localStorage;}catch(e){return{getItem:()=>null,setItem:()=>{},removeItem:()=>{}}}})();
+function showToast(m){const t=document.getElementById('toast');if(!t) return; t.textContent='✓ '+m;t.style.display='block';t.classList.add('show');clearTimeout(t.__to);t.__to=setTimeout(()=>{t.classList.remove('show');setTimeout(()=>{if(!t.classList.contains('show')) t.style.display='none';},170);},2200)}
+document.querySelectorAll('section.card[data-order-id]').forEach(card=>{ if(card.dataset.cardHidden==='1'){ card.hidden=true; card.setAttribute('data-card-disabled','1'); } });
+const notesLeftStack=document.getElementById('notes_left_stack');
+const store={};
+const hybridCardRegistry=new Map();
+const hybridCardInitializers=new Map();
+const out=document.getElementById('output');
+function getContainerCards(){ return notesLeftStack ? [...notesLeftStack.querySelectorAll(':scope > section.card[data-order-id]')] : []; }
+function getVisibleCardIds(){ return getContainerCards().filter(card=>!card.hidden && card.getAttribute('data-card-disabled')!=='1').map(card=>card.dataset.orderId).filter(Boolean); }
+function renderOut(){ const parts=[]; getVisibleCardIds().forEach(k=>{ const t=(store[k]||'').trim(); if(t) parts.push(t); }); const extra=(store.ovrigt||'').trim(); if(extra) parts.push(extra); out.textContent = parts.length ? parts.join('\n\n') : '— tomt —'; }
+function setBlock(k,t){ if(!k) return; store[k]=(t||'').trim(); renderOut(); safeStorage.setItem('othernotes.store.v1', JSON.stringify(store)); }
+function clearStorageNamespace(ns){ if(!ns || typeof safeStorage.key!=='function') return; try{ for(let i=safeStorage.length-1;i>=0;i--){ const key=safeStorage.key(i); if(key && key.indexOf(ns)===0) safeStorage.removeItem(key); } }catch(_){ } }
+function registerHybridCard(card, config){ if(!card || !card.dataset.orderId) return; hybridCardRegistry.set(card.dataset.orderId, Object.assign({ card:card }, config||{})); }
+function registerHybridInitializer(name, fn){ if(!name || typeof fn!=='function') return; hybridCardInitializers.set(name, fn); }
+function resetHybridCards(){ hybridCardRegistry.forEach(def=>{ if(def && typeof def.reset==='function'){ try{ def.reset(); }catch(_){ } } if(def && def.storageNamespace) clearStorageNamespace(def.storageNamespace); if(def && def.blockId) setBlock(def.blockId,''); }); }
+// fields/notes
+const taNotes=document.getElementById('free_notes');
+const taNotesExtra=document.getElementById('free_notes_extra');
+function saveNotes(){ safeStorage.setItem('othernotes.notes.v1', taNotes.value||''); }
+function loadNotes(){ taNotes.value = safeStorage.getItem('othernotes.notes.v1') || ''; }
+function saveNotesExtra(){ safeStorage.setItem('othernotes.notes_extra.v1', taNotesExtra.value||''); }
+function loadNotesExtra(){ taNotesExtra.value = safeStorage.getItem('othernotes.notes_extra.v1') || ''; }
+// active buttons
+function saveActive(ids){ safeStorage.setItem('othernotes.active.v1', JSON.stringify(ids||[])); }
+function loadActive(){ try{ return JSON.parse(safeStorage.getItem('othernotes.active.v1')||'[]'); }catch(_){ return []; } }
+function persistActiveButtons(){ const ids=[...document.querySelectorAll('.btn.active')].filter(b=>!b.closest('section.card[data-card-kind="hybrid"]')).map(b=>b.id).filter(Boolean); saveActive(ids); }
+function setActiveInGroup(groupAttr, activeBtn){ const group = document.querySelector(`.btns[data-group="${groupAttr}"]`); if(!group) return; group.querySelectorAll('.btn').forEach(b=>{ b.classList.remove('active','btn-primary'); if(!b.classList.contains('btn-ghost')) b.classList.add('btn-ghost'); }); if(activeBtn){ activeBtn.classList.add('active','btn-primary'); activeBtn.classList.remove('btn-ghost'); } persistActiveButtons(); }
+function restoreActiveButtons(){ loadActive().forEach(id=>{ const b=document.getElementById(id); if(b && !b.closest('section.card[data-card-kind="hybrid"]')){ b.classList.add('active','btn-primary'); b.classList.remove('btn-ghost'); } }); }
+function setStandaloneButtonState(btn, on){ if(!btn) return; btn.classList.toggle('active', !!on); btn.classList.toggle('btn-primary', !!on); btn.classList.toggle('btn-ghost', !on); }
+// DOM refs
+const ppmGroup=document.querySelector('.btns[data-group="ppm"]');
+const buffGroup=document.querySelector('.btns[data-group="buff"]');
+const btnSchablonAdd=document.getElementById('btn_schablon_add');
+const selPlac=document.getElementById('tp_placeras');
+const selVC=document.getElementById('tp_valcentral');
+const warnTP=document.getElementById('tp_warn');
+const btnTPAdd=document.getElementById('btn_tp_add');
+const fmChoices=[...document.querySelectorAll('input[name="fm_choice"]')];
+const fmSandningRow=document.getElementById('fm_sandning_row');
+const selFM=document.getElementById('fm_sandning');
+const warnFM=document.getElementById('fm_warn');
+const selU=document.getElementById('annat_urspr');
+const selT=document.getElementById('annat_tillagg');
+const warnA=document.getElementById('annat_warn');
+const btnAnnatAdd=document.getElementById('btn_annat_add');
+const btnGrpCopy=document.getElementById('btn_grp_copy');
+const awaitSaveAmount=document.getElementById('await_save_amount');
+const awaitSaveForm=document.getElementById('await_save_form');
+const awaitSaveReason=document.getElementById('await_save_reason');
+const btnAwaitSaveCopy=document.getElementById('btn_await_save_copy');
+const btnNUpd=document.getElementById('btn_notes_update');
+function syncStandaloneButtons(){ [btnSchablonAdd, btnTPAdd, btnAnnatAdd, btnGrpCopy].forEach(btn=>{ if(btn) setStandaloneButtonState(btn, btn.classList.contains('active')); }); }
+function clearTPState(){ if(selPlac) selPlac.value=''; if(selVC) selVC.value=''; if(warnTP) warnTP.style.display='none'; setBlock('tp',''); if(btnTPAdd) setStandaloneButtonState(btnTPAdd, false); persistActiveButtons(); }
+function clearFMState(){ fmChoices.forEach(function(r){ r.checked=false; }); if(fmSandningRow) fmSandningRow.hidden=true; if(selFM) selFM.value=''; if(warnFM) warnFM.style.display='none'; setBlock('fm',''); }
+function clearAnnatState(){ if(selU) selU.value=''; if(selT) selT.value=''; if(warnA) warnA.style.display='none'; setBlock('annat',''); if(btnAnnatAdd) setStandaloneButtonState(btnAnnatAdd, false); persistActiveButtons(); }
+function clearNotesState(){ taNotes.value=''; setBlock('ovrigt',''); btnNUpd.classList.remove('active'); saveNotes(); }
+function clearNotesExtraState(){ if(!taNotesExtra) return; taNotesExtra.value=''; saveNotesExtra(); }
+function performFullReset(){
+ resetHybridCards();
+ Object.keys(store).forEach(k=>delete store[k]);
+ renderOut();
+ document.querySelectorAll('.btn.active').forEach(b=>b.classList.remove('active'));
+ document.querySelectorAll('.btns[data-group] .btn').forEach(b=>{ b.classList.remove('active','btn-primary'); b.classList.add('btn-ghost'); });
+ syncStandaloneButtons();
+ clearTPState();
+ clearFMState();
+ clearAnnatState();
+ if(typeof awaitSaveAmount !== 'undefined' && awaitSaveAmount) awaitSaveAmount.value='';
+ if(typeof awaitSaveForm !== 'undefined' && awaitSaveForm) awaitSaveForm.value='';
+ if(typeof awaitSaveReason !== 'undefined' && awaitSaveReason) awaitSaveReason.value='';
+ clearNotesState();
+ clearNotesExtraState();
+ ['othernotes.store.v1','othernotes.notes.v1','othernotes.notes_extra.v1','othernotes.fields.v1','othernotes.active.v1'].forEach(k=>safeStorage.removeItem(k));
+ showToast('Allt rensat.');
+}
+function initTpNewCard(card){
+ const cardId=card.dataset.orderId||'tp_new';
+ const blockKey=card.dataset.blockId||cardId;
+ const storageNs=card.dataset.storageNs||('othernotes.hybrid.'+cardId);
+ const stateKey=storageNs+'.state.v1';
+ const rows=[...card.querySelectorAll('.tp-new-area')];
+ const shared=card.querySelector('[data-role="shared"]');
+ const warn=card.querySelector('.warn');
+ const button=card.querySelector('.btns .btn');
+ const config={saflo:{name:'SAF-LO',vc:'Fora'},akap:{name:'AKAP-KR/KAP-KL'},pa16:{name:'PA16',vc:'SPV'},itp:{name:'ITP',vc:'Avtalat'},other:{}};
+ if(!rows.length||!shared||!warn||!button) return;
+ function refs(row){ return {enabled:row.querySelector('[data-role="enabled"]'),product:row.querySelector('[data-role="product"]'),valcentral:row.querySelector('[data-role="valcentral"]'),customArea:row.querySelector('[data-role="custom-area"]'),customValcentral:row.querySelector('[data-role="custom-valcentral"]'),omval:row.querySelector('[data-role="omval"]'),flytt:row.querySelector('[data-role="flytt"]'),requested:row.querySelector('[data-role="requested"]'),received:row.querySelector('[data-role="received"]')}; }
+ function emptyState(){ return {active:false,shared:false,areas:{}}; }
+ function readForm(active){ const areas={}; rows.forEach(function(row){ const r=refs(row), key=row.dataset.area; row.classList.toggle('is-enabled', !!r.enabled.checked); areas[key]={enabled:!!r.enabled.checked,product:r.product?r.product.value:'',valcentral:r.valcentral?r.valcentral.value:'',customArea:r.customArea?r.customArea.value.trim():'',customValcentral:r.customValcentral?r.customValcentral.value.trim():'',omval:!!(r.omval&&r.omval.checked),flytt:!!(r.flytt&&r.flytt.checked),requested:!!(r.requested&&r.requested.checked),received:!!(r.received&&r.received.checked)}; if(areas[key].received) areas[key].flytt=true; }); return {active:!!active,shared:!!shared.checked,areas:areas}; }
+ function load(){ try{ const v=JSON.parse(safeStorage.getItem(stateKey)||'{}'); if(!v||!v.areas) return emptyState(); ['akap','pa16'].forEach(function(key){ const area=v.areas[key]; if(!area) return; if(area.received){ area.omval=false; area.requested=false; area.flytt=true; } else area.flytt=false; }); return v; }catch(_){ return emptyState(); } }
+ function save(state){ safeStorage.setItem(stateKey,JSON.stringify(state)); }
+ function applyForm(state){ rows.forEach(function(row){ const r=refs(row), v=(state.areas&&state.areas[row.dataset.area])||{}; r.enabled.checked=!!v.enabled; row.classList.toggle('is-enabled', !!v.enabled); if(r.product&&v.product) r.product.value=v.product; if(r.valcentral) r.valcentral.value=v.valcentral||''; if(r.customArea) r.customArea.value=v.customArea||''; if(r.customValcentral) r.customValcentral.value=v.customValcentral||''; if(r.omval) r.omval.checked=!!v.omval; if(r.flytt) r.flytt.checked=!!v.flytt; if(r.requested) r.requested.checked=!!v.requested; if(r.received) r.received.checked=!!v.received; }); shared.checked=!!state.shared; }
+ function setButtonActive(on){ setStandaloneButtonState(button,!!on); }
+ function details(key,v){ const c=config[key], name=key==='other'?v.customArea:c.name, vc=key==='other'?v.customValcentral:(c.vc||v.valcentral), form=v.product==='Folksam Tjänstepension'?'traditionellt förvaltad':'fondförvaltad'; return {name:name,vc:vc,form:form}; }
+ function areaError(key,v){ const d=details(key,v); if(!d.name) return 'Ange avtalsområde för Övriga.'; if(!d.vc) return 'Ange eller välj valcentral för '+(d.name||'Övriga')+'.'; if(!v.product) return 'Välj försäkring för '+(d.name||'Övriga')+'.'; if(!v.omval&&!v.flytt&&!v.requested&&!v.received) return 'Välj minst ett utfall för '+(d.name||'Övriga')+'.'; return ''; }
+ function validate(state){ const selected=Object.keys(state.areas||{}).filter(function(key){ return state.areas[key].enabled; }); const errors=[]; if(!selected.length&&!state.shared) errors.push('Välj minst ett avtalsområde eller Delad skärm.'); selected.forEach(function(key){ const error=areaError(key,state.areas[key]); if(error) errors.push(error); }); warn.textContent=errors[0]||''; warn.style.display=errors.length?'block':'none'; return !errors.length; }
+ function hasCompleteContent(state){ return !!state.shared || Object.keys(state.areas||{}).some(function(key){ const v=state.areas[key]; return v&&v.enabled&&!areaError(key,v); }); }
+ function omvalText(d,withIntro){ return (withIntro?'Vi har idag pratat om din tjänstepension och du':'Du')+' har gjort ett omval inom ditt avtalsområde '+d.name+' som innebär att framtida premier ska placeras i en '+d.form+' tjänstepensionsförsäkring hos Folksam. Omvalet avseende kommande premier har du gjort via din valcentral '+d.vc+' i rådgivningsmötet.'; }
+ function flyttText(d,withIntro){ return (withIntro?'Vi har idag pratat om din tjänstepension och jag':'Jag')+' har rekommenderat att ditt tidigare intjänade tjänstepensionskapital inom ditt avtalsområde '+d.name+' flyttas till en '+d.form+' tjänstepensionsförsäkring hos Folksam. Flytten avseende inbetalda premier har du gjort via din valcentral '+d.vc+' i rådgivningsmötet.\n\nJag bedömer att flytten är lämplig utifrån bland annat avgifter, placeringsmöjligheter, riskskydd, övriga villkor och dina behov. En samlad pension hos Folksam ger bättre överblick och enklare administration samt kan underlätta uppföljning av placeringar, avgifter och framtida utbetalningar.\n\nDu har därefter gjort ett aktivt val att flytta ditt intjänade tjänstepensionskapital. Jag har informerat om att flyttavgifter kan förekomma och att information om dessa, samt jämförelser av avgifter, villkor och avkastning, finns på valcentralens webbplats.'; }
+ function receivedText(d){ return 'Jag har vid tidigare rådgivningsmöte rekommenderat dig att flytta ditt tidigare intjänade tjänstepensionskapital inom '+d.name+' till en '+d.form+' tjänstepensionsförsäkring i Folksam och du har valt att du vill flytta. Jag har därför idag hjälpt dig att genomföra flytten. Flytten har du gjort via din valcentral i rådgivningsmötet.'; }
+ function requestedText(d){ return 'För att få en fullständig överblick har vi tillsammans beställt en sammanställning från din valcentral '+d.vc+' som beräknas vara klar inom några dagar. Vi erbjuder ett uppföljande rådgivningsmöte för genomgång av underlaget och stöd i flyttprocessen. Vi ber dig återkoppla när flytten har genomförts. Om du behöver stöd eller vägledning för att komma vidare är det viktigt att du meddelar detta.'; }
+ function build(state){ if(!state.active) return ''; const parts=[]; let introUsed=false; ['saflo','akap','pa16','itp','other'].forEach(function(key){ const v=state.areas[key]; if(!v||!v.enabled||areaError(key,v)) return; const d=details(key,v), areaParts=[]; if(v.received) areaParts.push(receivedText(d)); if(v.omval){ areaParts.push(omvalText(d,!introUsed)); introUsed=true; } if(v.flytt){ areaParts.push(flyttText(d,!introUsed&&!v.received)); if(!v.received) introUsed=true; } if(v.requested) areaParts.push(requestedText(d)); if(areaParts.length) parts.push(d.name.toLocaleUpperCase('sv-SE')+'\n'+areaParts.join('\n\n')); }); if(state.shared) parts.push('DELAD SKÄRM\nUnder rådgivningen loggade du själv in på din valcentral med dina personliga inloggningsuppgifter. Efter att du lämnat en muntlig fullmakt bistod jag dig, i samförstånd med dig, vid genomförandet av dina val på valcentralen medan vi delade skärm.'); return parts.join('\n\n'); }
+ function applyState(state,showWarn){ applyForm(state); if(showWarn&&!validate(state)){ setButtonActive(false); setBlock(blockKey,''); return; } warn.style.display='none'; setButtonActive(!!state.active); setBlock(blockKey,build(state)); }
+ function sync(){ const current=load(), next=readForm(current.active); save(next); if(next.active){ validate(next); setBlock(blockKey,build(next)); setButtonActive(true); } else warn.style.display='none'; }
+ function resetCard(){ const state=emptyState(); save(state); applyState(state,false); }
+ function enforceOutcomeChoice(row,changed){
+  if(row.dataset.area!=='akap'&&row.dataset.area!=='pa16') return;
+  if(!changed.checked) return;
+  const r=refs(row);
+  if(changed===r.received){ if(r.omval) r.omval.checked=false; if(r.requested) r.requested.checked=false; }
+  else if(changed===r.omval||changed===r.requested){ if(r.received) r.received.checked=false; }
+ }
+ rows.forEach(function(row){ row.querySelectorAll('input,select').forEach(function(el){ el.addEventListener('input',sync); el.addEventListener('change',function(){ enforceOutcomeChoice(row,el); sync(); }); }); }); shared.addEventListener('change',sync);
+button.addEventListener('click',function(){ const current=load(); if(current.active){ resetCard(); showToast('Tjänstepension – nytt: borttagen'); return; } const next=readForm(true); validate(next); if(!hasCompleteContent(next)) return; next.active=true; save(next); setBlock(blockKey,build(next)); setButtonActive(true); showToast('Tjänstepension – nytt: tillagd'); });
+ registerHybridCard(card,{blockId:blockKey,storageNamespace:storageNs,reset:resetCard});
+ applyState(load(),false);
+}
+registerHybridInitializer('tpNewCard', initTpNewCard);
+// PPM
+ppmGroup.querySelector('#btn_ppm_byter').addEventListener('click',function(){ if(this.classList.contains('active')){ setBlock('ppm',''); setActiveInGroup('ppm', null); showToast('Premiepension: Allmänt råd borttaget'); return; } setBlock('ppm','ALLMÄN PENSION\nVi har gått igenom din premiepension på en övergripande nivå. Jag har gett dig ett allmänt råd att se över dina placeringar utifrån din situation och hänvisat dig till Pensionsmyndigheten för eventuella förändringar.'); setActiveInGroup('ppm', this); showToast('Premiepension: Allmänt råd tillagt'); });
+ppmGroup.querySelector('#btn_ppm_behaller').addEventListener('click',function(){ if(this.classList.contains('active')){ setBlock('ppm',''); setActiveInGroup('ppm', null); showToast('Premiepension: Inget råd borttaget'); return; } setBlock('ppm','ALLMÄN PENSION\nVi har gått igenom din allmänna pension på en övergripande nivå.'); setActiveInGroup('ppm', this); showToast('Premiepension: Inget råd tillagt'); });
+// Schablonberäkning
+btnSchablonAdd.addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('schablon',''); setStandaloneButtonState(this, false); persistActiveButtons(); showToast('Schablonberäkning: borttagen'); return; } setBlock('schablon', "SCHABLONBERÄKNING\nDu har valt att inte logga in på minPension.se vid detta rådgivningstillfälle. Vi har därför inte haft möjlighet att hämta exakta uppgifter om dina intjänade pensioner.\nFör att kunna genomföra en översiktlig pensionsanalys har vi i stället använt schablonberäkningar baserade på din nuvarande lön, antagna intjänandeperioder och allmänna pensionsregler.\nAnalysen ger en uppskattad prognos och kan avvika från din faktiska pensionsbehållning. Jag rekommenderar verifiering via minPension.se för mer precisa uppgifter.\nDu har tagit del av och godkänt att rådgivningen baseras på schabloniserade antaganden."); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Schablonberäkning: tillagd'); });
+// TP
+function validateTP(){ const a=selPlac.value.trim(), b=selVC.value.trim(); const ok=!!a && !!b; warnTP.style.display = ok ? 'none' : 'block'; return ok ? {a,b} : null; }
+function buildTP({a,b}){ return [ `Vi har idag pratat om din tjänstepension och du har gjort ett aktivt val som innebär att intjänat tjänstepensionskapital ska placeras hos ${a}`, `Under rådgivningen har du muntligen gett mig fullmakt att tillsammans med dig och i samförstånd logga in på din valcentral ${b} och genomfört ändringen och flytten.`, `(Signeringarna för detta gjordes med ditt bank-id under tiden vi delat skärm.)` ].join('\n'); }
+btnTPAdd.addEventListener('click', function(){ if(this.classList.contains('active')){ clearTPState(); showToast('Tjänstepension borttagen.'); return; } const v=validateTP(); if(!v) return; setBlock('tp', buildTP(v)); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Tjänstepension tillagd.'); });
+
+function initHallbarhetCard(card){
+ const cardId=card.dataset.orderId||'hybrid_card';
+ const blockKey=card.dataset.blockId||cardId;
+ const storageNs=card.dataset.storageNs||('othernotes.hybrid.'+cardId);
+ const stateKey=storageNs+'.state.v1';
+ const cardTitle=((card.querySelector(':scope > header h2')||{}).textContent||'Hållbarhetspreferenser').trim();
+ const button=card.querySelector('.content .btn');
+ if(!button) return;
+ function normalizeState(data){
+  return { active: !!(data && data.active===true) };
+ }
+ function loadState(){
+  try{ return normalizeState(JSON.parse(safeStorage.getItem(stateKey)||'{}')); }catch(_){ return normalizeState({}); }
+ }
+ function saveState(state){
+  safeStorage.setItem(stateKey, JSON.stringify(normalizeState(state||{})));
+ }
+ function buildText(state){
+  if(!state || !state.active) return '';
+  return 'HÅLLBARHETSPREFERENSER\nDu har fått information om hållbarhetspreferenser enligt EU-regler.';
+ }
+ function applyState(state){
+  var normalized=normalizeState(state);
+  button.classList.toggle('active', !!normalized.active);
+  button.classList.toggle('btn-primary', !!normalized.active);
+  button.classList.toggle('btn-ghost', !normalized.active);
+  setBlock(blockKey, buildText(normalized));
+ }
+ function resetCard(){
+  var next=normalizeState({ active:false });
+  saveState(next);
+  applyState(next);
+ }
+ button.addEventListener('click', function(){
+  var current=loadState();
+  var next=normalizeState({ active: !current.active });
+  saveState(next);
+  applyState(next);
+  showToast(cardTitle+': '+(next.active ? 'tillagd' : 'borttagen'));
+ });
+ registerHybridCard(card, { blockId:blockKey, storageNamespace:storageNs, reset:resetCard });
+ applyState(loadState());
+}
+registerHybridInitializer('hallbarhetCard', initHallbarhetCard);
+document.querySelectorAll('section.card[data-card-kind="hybrid"]').forEach(card=>{ const initKey=card.dataset.hybridInit||''; const initializer=hybridCardInitializers.get(initKey); if(typeof initializer==='function') initializer(card); });
+// Buffert
+buffGroup.querySelector('#btn_buff_avr').addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('buff',''); setActiveInGroup('buff', null); showToast('Buffert: Avrådan av'); return; } setBlock('buff','Målet har inte behandlats i mötet på grund av begränsad buffert. Jag har rekommenderat dig att först spara ihop en buffert på ett vanligt sparkonto alternativt ett olåst fasträntekonto via din bank som är tillräcklig för att klara en kortsiktig ekonomisk utmaning innan jag rekommenderar att börja spara långsiktigt hos oss.'); setActiveInGroup('buff', this); showToast('Buffert: Avrådan'); });
+buffGroup.querySelector('#btn_buff_utry').addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('buff',''); setActiveInGroup('buff', null); showToast('Buffert: Utrymme av'); return; } setBlock('buff','Jag har rekommenderat dig att öka upp din buffert samtidigt som jag har rekommenderat att spara långsiktigt i en kapitalförsäkring. Enligt den ekonomiska sammanställningen finns utrymme till båda delarna.'); setActiveInGroup('buff', this); showToast('Buffert: Utrymme finns'); });
+// FM
+function getFMChoice(){ const selected=fmChoices.find(function(r){ return r.checked; }); return selected ? selected.value : ''; }
+function validateFM(){ const choice=getFMChoice(); const sending=(selFM.value||'').trim(); const ok=choice==='same' || (choice==='change' && !!sending); warnFM.style.display=ok?'none':'block'; return ok ? {choice:choice,sending:sending} : null; }
+function buildFM(v){ if(v.choice==='same') return 'FÖRMÅNSTAGARFÖRORDNANDE\nVi har pratat om vem du vill ska få ersättningar och sparanden om du skulle avlida. Vi har säkerställt att förmånstagarförordnandena överensstämmer med dina önskemål och din nuvarande familjesituation. Inga förändringar är aktuella i dagsläget.'; return 'FÖRMÅNSTAGARFÖRORDNANDE\nVi har pratat om vem du vill ska få ersättningar och sparanden om du skulle avlida.\nRelevanta blanketter kommer att skickas till dig via '+(v.sending==='E-post'?'e-post':'post')+' för de försäkringar och sparanden där ändringar behöver göras. Det är ditt ansvar att fylla i, underteckna och skicka tillbaka blanketterna så att ändringarna kan registreras och börja gälla.'; }
+function updateFMVisibility(){ const change=getFMChoice()==='change'; fmSandningRow.hidden=!change; if(!change) selFM.value=''; }
+function syncFMIfActive(){ updateFMVisibility(); const v=validateFM(); if(!v){ setBlock('fm',''); if(warnFM) warnFM.style.display='none'; return; } setBlock('fm',buildFM(v)); if(warnFM) warnFM.style.display='none'; }
+fmChoices.forEach(function(r){ r.addEventListener('change',syncFMIfActive); });
+if(selFM){ ['input','change'].forEach(function(ev){ selFM.addEventListener(ev,syncFMIfActive); }); }
+if(btnGrpCopy){ btnGrpCopy.addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('grp',''); setStandaloneButtonState(this, false); persistActiveButtons(); showToast('Grp/Skador: borttagen'); return; } const text="GRP/SKADOR\nVi har i dag gått igenom ditt behov av fackliga försäkringar. Jag har informerat dig om hur ditt nuvarande försäkringsskydd ser ut och hänvisat dig till vår hemsida för eventuella kompletteringar. \nJag har även ställt frågor kring eventuella oanmälda skador och hänvisat dig till rätt kontaktväg för att hantera dessa."; setBlock('grp', text); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Grp/Skador: tillagd'); }); }
+// Annat mål
+function validateAnnat(){ const u=selU.value.trim(), t=selT.value.trim(); const ok= !!u && !!t; warnA.style.display = ok ? 'none' : 'block'; return ok ? {urspr:u, till:t} : null; }
+function buildAnnat({urspr, till}){ return `Inledningsvis var tanken enbart att se över ${urspr} men under rådgivningens gång ville du även starta ett ${till}`; }
+btnAnnatAdd.addEventListener('click', function(){ if(this.classList.contains('active')){ clearAnnatState(); showToast('Annat mål borttaget.'); return; } const v=validateAnnat(); if(!v) return; setBlock('annat', buildAnnat(v)); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Annat mål tillagt.'); });
+if(btnAwaitSaveCopy){ btnAwaitSaveCopy.addEventListener('click', async function(){ var amount=(awaitSaveAmount && awaitSaveAmount.value ? String(awaitSaveAmount.value) : '').trim(); var form=(awaitSaveForm && awaitSaveForm.value ? awaitSaveForm.value : ''); var reason=(awaitSaveReason && awaitSaveReason.value ? awaitSaveReason.value : ''); var formText = form==='fond' ? 'fond förvaltad kapitalförsäkring' : (form==='traditionellt ' ? 'traditionellt förvaltad kapitalförsäkring' : ''); var reasonText = reason==='annat_sparande' ? 'att du prioriterar annat sparande' : (reason==='ekonomiskt_utrymme' ? 'att du saknar utrymme i ekonomin just nu' : (reason==='vill_avvakta' ? 'att du vill fundera ett tag' : '')); if(!amount || !formText || !reasonText){ alert('Fyll i sparbelopp, sparform och orsak till att avvakta.'); return; } var text='Vi har i mötet genomfört en individuell behovsanalys, baserad på nuvarande pensionstillgångar, förväntade framtida premieinbetalningar samt individuella mål, där du har detaljerat ditt behov av framtida pension. Utkomsten av analysen är att du skulle behöva starta ett kompletterande sparande på ca '+amount+' kr/mån till pension för att nå dina mål. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+formText+', med en fondportfölj som är lämplig utifrån dina investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomiska situation.\n\nDu väljer att avvakta med sparandet på grund av '+reasonText+'.'; await copyText(text); showToast('Text kopierad.'); }); }
+// Utfall
+// Notes update/clear
+btnNUpd.addEventListener('click', function(){ const t = taNotes.value.trim(); setBlock('ovrigt', t ? 'KOMPLETTERANDE DOKUMENTATION\n'+t : ''); if(t) this.classList.add('active'); else this.classList.remove('active'); showToast('Egna tillägg uppdaterade'); });
+document.getElementById('btn_copy').addEventListener('click', async function(){ const text=out.textContent||''; if(!text.trim()) return showToast('Ingen text att kopiera.'); try{ await navigator.clipboard.writeText(text); showToast('Text kopierad.'); } catch{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){ } document.body.removeChild(ta); showToast('Text kopierad.'); } });
+// snapshot fields + listeners
+function snapshotFields(){ return { tp_placeras: selPlac.value, tp_valcentral: selVC.value, fm_choice: getFMChoice(), fm_sandning: selFM.value, annat_urspr: selU.value, annat_tillagg: selT.value }; }
+;['input','change'].forEach(ev=>{ [selPlac, selVC, selFM, selU, selT].concat(fmChoices).forEach(el=>{ el.addEventListener(ev, ()=> safeFields()); }); });
+function safeFields(){ try{ safeStorage.setItem('othernotes.fields.v1', JSON.stringify(snapshotFields())); }catch(_){ } }
+taNotes.addEventListener('input', saveNotes); if(taNotesExtra) taNotesExtra.addEventListener('input', saveNotesExtra);
+// init
+try{ const s = JSON.parse(safeStorage.getItem('othernotes.store.v1')||'{}'); if(s && typeof s==='object'){ Object.keys(s).forEach(k=>{ if(typeof s[k]==='string') store[k]=s[k]; }); } }catch(_){ }
+renderOut(); restoreActiveButtons(); syncStandaloneButtons(); loadNotes(); loadNotesExtra(); try{ const f=JSON.parse(safeStorage.getItem('othernotes.fields.v1')||'{}'); if(f.tp_placeras) selPlac.value=f.tp_placeras; if(f.tp_valcentral) selVC.value=f.tp_valcentral; if(f.fm_choice){ const r=fmChoices.find(function(x){ return x.value===f.fm_choice; }); if(r) r.checked=true; } if(f.fm_sandning) selFM.value=f.fm_sandning; updateFMVisibility(); syncFMIfActive(); if(f.annat_urspr) selU.value=f.annat_urspr; if(f.annat_tillagg) selT.value=f.annat_tillagg; }catch(_){ }
+function stod1ResetAll(){
+ performFullReset();
+ try{ safeStorage.removeItem('othernotes.collapse.v1'); }catch(_){ }
+ try{ safeStorage.removeItem('othernotes.order.v1'); }catch(_){ }
+ try{ safeStorage.removeItem('othernotes.order.default.v1.container'); }catch(_){ }
+}
+function runResetHash(){
+ if(!/^#reset-(?:all|panel)(?:[-=]\d+)?$/.test(location.hash)) return;
+ stod1ResetAll();
+ try{ history.replaceState(null,'', location.pathname + location.search); }catch(_){ }
+}
+runResetHash();
+window.addEventListener('hashchange', runResetHash);
+ (function(){
+ const COLL_K='othernotes.collapse.v1';
+ function load(){ try{return JSON.parse(localStorage.getItem(COLL_K)||'{}')}catch(e){return{}} }
+ function save(s){ try{localStorage.setItem(COLL_K, JSON.stringify(s))}catch(e){} }
+ const state=load();
+ const cards=[...document.querySelectorAll('section.card')];
+ cards.forEach(card=>{
+ const header=card.querySelector(':scope > header'); const content=card.querySelector(':scope > .content'); if(!header||!content) return;
+ const name=(header.querySelector('h2')||{}).textContent||'kort'; const key='coll_'+name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_');
+ if(!content.id) content.id=key;
+ const lockOpen = card.id==='sek_out';
+ const expanded = lockOpen ? true : state[key]!==false;
+ header.setAttribute('aria-expanded', expanded?'true':'false');
+ if(lockOpen){ state[key]=true; save(state); return; }
+ const btn=document.createElement('button'); btn.className='collapse-toggle'; btn.type='button'; btn.setAttribute('aria-controls', content.id);
+ const setLabel=()=>{ btn.textContent=header.getAttribute('aria-expanded')==='true'?'Komprimera':'Expandera' }; setLabel();
+ btn.addEventListener('click',()=>{ const now=header.getAttribute('aria-expanded')==='true'?'false':'true'; header.setAttribute('aria-expanded',now); state[key]=(now==='true'); save(state); setLabel(); });
+ header.appendChild(btn);
+ });
+ })();
+ (function(){
+ const leftStack=document.getElementById('notes_left_stack');
+ if(!leftStack) return;
+ const getCards=()=>[...leftStack.querySelectorAll(':scope > section.card[data-order-id]:not([data-card-disabled="1"])')];
+ const tools=document.createElement('div');
+ tools.className='left-tools';
+ const toggleCollapseBtn=document.createElement('button');
+ toggleCollapseBtn.className='btn btn-ghost';
+ toggleCollapseBtn.id='btn_toggle_all_cards';
+ toggleCollapseBtn.type='button';
+ toggleCollapseBtn.textContent='Komprimera alla';
+ tools.appendChild(toggleCollapseBtn);
+ const toolsHost=document.getElementById('notes_tools_host');
+ if(toolsHost) toolsHost.appendChild(tools);
+ else leftStack.insertBefore(tools, leftStack.firstElementChild);
+ function getCollKey(card){
+  const header=card.querySelector(':scope > header');
+  const name=((header && header.querySelector('h2'))||{}).textContent||'kort';
+  return 'coll_'+name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_');
+ }
+ function allCardsCollapsed(){
+  return getCards().every(card=>{ const header=card.querySelector(':scope > header'); return header && header.getAttribute('aria-expanded')==='false'; });
+ }
+ function updateToggleCollapseBtn(){
+  toggleCollapseBtn.textContent = allCardsCollapsed() ? 'Expandera alla' : 'Komprimera alla';
+ }
+ function setAllCardsExpanded(expanded){
+  const state=(()=>{ try{return JSON.parse(safeStorage.getItem(COLL_K)||'{}');}catch(_){ return {}; } })();
+  getCards().forEach(card=>{
+   const header=card.querySelector(':scope > header');
+   if(!header) return;
+   header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+   const btn=header.querySelector('.collapse-toggle');
+   if(btn) btn.textContent = expanded ? 'Komprimera' : 'Expandera';
+   state[getCollKey(card)] = !!expanded;
+  });
+  try{ safeStorage.setItem(COLL_K, JSON.stringify(state)); }catch(_){ }
+  updateToggleCollapseBtn();
+ }
+ updateToggleCollapseBtn();
+ toggleCollapseBtn.addEventListener('click', ()=>{
+  setAllCardsExpanded(allCardsCollapsed());
+ });
+ leftStack.addEventListener('click', e=>{
+  const btn=e.target.closest('.collapse-toggle');
+  if(!btn) return;
+  setTimeout(updateToggleCollapseBtn, 0);
+ });
+ })();
+});
+</script>
+<script>
+(function(){
+ window.addEventListener('storage', function(e){
+ if(e.key==='stod1.theme.v1'){
+ var theme = e.newValue === 'light' ? 'light' : 'dark';
+ document.documentElement.setAttribute('data-theme', theme);
+ }
+ });
+})();
+</script>
+</body>
+</html>
