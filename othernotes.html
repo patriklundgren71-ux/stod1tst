@@ -21,8 +21,8 @@
  header.app h1{margin:0;font-size:18px}
  main{display:grid;gap:16px;grid-template-columns:1.1fr 0.9fr;align-items:start;padding:0 16px 16px}
  @media (max-width: 1000px){ main{grid-template-columns:1fr} }
- .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
- .card>header{background:transparent;border-bottom:1px solid #283244;padding:12px 14px}
+ .card{background:var(--card);border:1px solid color-mix(in srgb,var(--accent) 65%,transparent);border-radius:10px;overflow:hidden}
+ .card>header{background:transparent;border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent);padding:12px 14px}
  .card>header h2{margin:0;font-size:15px}
  .content-title{margin:0;font-size:15px;font-weight:600;color:var(--text)}
  .content{padding:14px 16px}
@@ -35,6 +35,17 @@
  .btn.active{box-shadow:0 0 0 4px var(--activeGlow); border-color:#a5f3fc}
  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible{outline:0;border-color:#3b82f6;box-shadow:0 0 0 2px var(--focus)}
  .hr{height:1px;background:var(--line);margin:6px 0 0 0}
+ .notes-bundle-stack{display:grid;gap:2px}
+ .notes-bundle-module{border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:10px;overflow:hidden;background:color-mix(in srgb,var(--card) 88%,var(--ink))}
+ .notes-bundle-module>h3{margin:0;padding:8px 12px;border-bottom:1px solid color-mix(in srgb,var(--accent) 28%,transparent);font-size:14px}
+ .notes-bundle-module-body{padding:10px 12px}
+ .notes-bundle-module-body .hr{display:none}
+ .notes-bundle-module-body>.stack{gap:10px}
+ .notes-bundle-module{background:#07101f;border-color:#263247}
+ .notes-bundle-module>h3{background:#07101f;border-bottom-color:#263247}
+ .notes-bundle-choice{display:inline-flex;align-items:center;gap:8px;min-height:24px;cursor:pointer;color:var(--text)}
+ .notes-bundle-choice input{margin:0}
+ .notes-bundle-choices{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
  .row{display:grid;gap:10px;grid-template-columns:repeat(12,1fr);align-items:center}
  .row label{grid-column:span 4;color:#cbd5e1;font-size:13px}
  .row .field{grid-column:span 8;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -127,7 +138,7 @@
  --activeGlow:rgba(37,99,235,.18);
 }
 :root[data-theme="light"] header.app{background:linear-gradient(90deg,var(--panel),#eef2f7);border-bottom:1px solid var(--line)}
-:root[data-theme="light"] .card>header{border-bottom:1px solid var(--line)}
+:root[data-theme="light"] .card>header{border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,transparent)}
 :root[data-theme="light"] .row label{color:#334155}
 :root[data-theme="light"] .await-save-field label{color:#334155}
 :root[data-theme="light"] .tp-inline-field label{color:#334155}
@@ -151,17 +162,17 @@
 <body>
 <main>
  <div class="notes-tools-row"><div id="notes_tools_host" class="notes-tools"></div><div></div></div>
- <div class="stack" id="notes_left_stack" style="gap:16px"><section class="card" data-order-id="grp"><header><h2>Grp/Skador (första utgående samtalet)</h2></header>
+ <div class="stack" id="notes_left_stack" style="gap:16px"><section class="card" data-order-id="grp" data-card-hidden="1"><header><h2>Grp/Skador (första utgående samtalet)</h2></header>
  <div class="content">
- <div class="btns"><button class="btn btn-ghost" id="btn_grp_copy" title="Välj när du i första utgående samtalet har pratat om gruppförsäkringar och skador." type="button">Lägg till</button></div>
+ <div class="notes-bundle-choices"><label class="notes-bundle-choice"><input id="btn_grp_copy" title="Välj när du i första utgående samtalet har pratat om gruppförsäkringar och skador." type="checkbox" /> Lägg till</label></div>
  <div class="hr"></div>
  </div>
  </section>
- <section class="card" data-order-id="ppm"><header><h2>Premiepension</h2></header>
+ <section class="card" data-order-id="ppm" data-card-hidden="1"><header><h2>Premiepension</h2></header>
  <div class="content stack">
- <div class="btns" data-group="ppm">
- <button class="btn btn-ghost" id="btn_ppm_byter" title="Välj när du har gett kunden ett allmänt råd att se över placeringarna." type="button">Allmänt råd</button>
- <button class="btn btn-ghost" id="btn_ppm_behaller" title="Välj när du inte bedömer att kunden behöver se över den allmänna pensionen." type="button">Inget råd</button>
+ <div class="notes-bundle-choices" data-group="ppm">
+ <label class="notes-bundle-choice"><input id="btn_ppm_byter" title="Välj när du har gett kunden ett allmänt råd att se över placeringarna." type="checkbox" /> Allmänt råd</label>
+ <label class="notes-bundle-choice"><input id="btn_ppm_behaller" title="Välj när du inte bedömer att kunden behöver se över den allmänna pensionen." type="checkbox" /> Inget råd</label>
  </div>
  <div class="hr"></div>
  </div>
@@ -182,16 +193,26 @@
  <div class="hr"></div>
  </div>
  </section>
-<section class="card" data-order-id="hallbarhet" data-card-kind="hybrid" data-hybrid-init="hallbarhetCard" data-storage-ns="othernotes.hybrid.hallbarhet" data-block-id="hallbarhet"><header><h2>Hållbarhetspreferenser</h2></header>
+<section class="card" data-order-id="hallbarhet" data-card-hidden="1" data-card-kind="hybrid" data-hybrid-init="hallbarhetCard" data-storage-ns="othernotes.hybrid.hallbarhet" data-block-id="hallbarhet"><header><h2>Hållbarhetspreferenser</h2></header>
  <div class="content">
- <div class="btns"><button class="btn btn-primary" type="button">Lägg till</button></div>
+ <div class="notes-bundle-choices"><label class="notes-bundle-choice"><input type="checkbox" /> Lägg till</label></div>
  <div class="hr"></div>
  </div>
  </section>
-<section class="card" data-order-id="schablon"><header><h2>Schablonberäkning</h2></header>
+<section class="card" data-order-id="schablon" data-card-hidden="1"><header><h2>Schablonberäkning</h2></header>
  <div class="content">
- <div class="btns"><button class="btn btn-primary" id="btn_schablon_add" title="Välj när pensionen har schablonberäknats i stället för att räknas på exakta uppgifter." type="button">Lägg till</button></div>
+ <div class="notes-bundle-choices"><label class="notes-bundle-choice"><input id="btn_schablon_add" title="Välj när pensionen har schablonberäknats i stället för att räknas på exakta uppgifter." type="checkbox" /> Lägg till</label></div>
  <div class="hr"></div>
+ </div>
+ </section>
+ <section class="card" data-order-id="notes_bundle" data-card-kind="hybrid" data-hybrid-init="notesBundleCard" data-storage-ns="othernotes.hybrid.notes_bundle" data-block-order="grp ppm hallbarhet schablon"><header><h2>Övriga noteringar</h2></header>
+ <div class="content">
+  <div class="notes-bundle-stack">
+   <section class="notes-bundle-module" data-notes-module="grp"><h3>Grp/Skador (första utgående samtalet)</h3><div class="notes-bundle-module-body" data-module-host="grp"></div></section>
+   <section class="notes-bundle-module" data-notes-module="ppm"><h3>Premiepension</h3><div class="notes-bundle-module-body" data-module-host="ppm"></div></section>
+   <section class="notes-bundle-module" data-notes-module="hallbarhet"><h3>Hållbarhetspreferenser</h3><div class="notes-bundle-module-body" data-module-host="hallbarhet"></div></section>
+   <section class="notes-bundle-module" data-notes-module="schablon"><h3>Schablonberäkning</h3><div class="notes-bundle-module-body" data-module-host="schablon"></div></section>
+  </div>
  </div>
  </section>
  <section class="card" data-order-id="fm"><header><h2>Förmånstagarförordnande</h2></header>
@@ -243,8 +264,7 @@
  <div class="hr"></div>
  <div class="content-title">Egna tillägg</div>
  <textarea id="free_notes" class="ta-large" rows="5" placeholder="Skriv övrig dokumentation här…"></textarea>
- <div class="btns"><button class="btn btn-primary" id="btn_notes_update" type="button">Uppdatera egna tillägg</button></div>
- <div class="hr"></div>
+  <div class="hr"></div>
  <!-- Egna noteringar (lokal, ej i Genererad) -->
  <div class="content-title">Kom ihåg</div>
  <textarea id="free_notes_extra" class="ta-large" rows="5" placeholder="Egna noteringar (sparas lokalt, ingår inte i Genererad text)…"></textarea>
@@ -265,8 +285,8 @@ const hybridCardRegistry=new Map();
 const hybridCardInitializers=new Map();
 const out=document.getElementById('output');
 function getContainerCards(){ return notesLeftStack ? [...notesLeftStack.querySelectorAll(':scope > section.card[data-order-id]')] : []; }
-function getVisibleCardIds(){ return getContainerCards().filter(card=>!card.hidden && card.getAttribute('data-card-disabled')!=='1').map(card=>card.dataset.orderId).filter(Boolean); }
-function renderOut(){ const parts=[]; getVisibleCardIds().forEach(k=>{ const t=(store[k]||'').trim(); if(t) parts.push(t); }); const extra=(store.ovrigt||'').trim(); if(extra) parts.push(extra); out.textContent = parts.length ? parts.join('\n\n') : '— tomt —'; }
+function getVisibleCards(){ return getContainerCards().filter(card=>!card.hidden && card.getAttribute('data-card-disabled')!=='1'); }
+function renderOut(){ const parts=[]; getVisibleCards().forEach(card=>{ const keys=(card.dataset.blockOrder||card.dataset.orderId||'').split(/\s+/).filter(Boolean); keys.forEach(k=>{ const t=(store[k]||'').trim(); if(t) parts.push(t); }); }); const extra=(store.ovrigt||'').trim(); if(extra) parts.push(extra); out.textContent = parts.length ? parts.join('\n\n') : '— tomt —'; }
 function setBlock(k,t){ if(!k) return; store[k]=(t||'').trim(); renderOut(); safeStorage.setItem('othernotes.store.v1', JSON.stringify(store)); }
 function clearStorageNamespace(ns){ if(!ns || typeof safeStorage.key!=='function') return; try{ for(let i=safeStorage.length-1;i>=0;i--){ const key=safeStorage.key(i); if(key && key.indexOf(ns)===0) safeStorage.removeItem(key); } }catch(_){ } }
 function registerHybridCard(card, config){ if(!card || !card.dataset.orderId) return; hybridCardRegistry.set(card.dataset.orderId, Object.assign({ card:card }, config||{})); }
@@ -283,11 +303,11 @@ function loadNotesExtra(){ taNotesExtra.value = safeStorage.getItem('othernotes.
 function saveActive(ids){ safeStorage.setItem('othernotes.active.v1', JSON.stringify(ids||[])); }
 function loadActive(){ try{ return JSON.parse(safeStorage.getItem('othernotes.active.v1')||'[]'); }catch(_){ return []; } }
 function persistActiveButtons(){ const ids=[...document.querySelectorAll('.btn.active')].filter(b=>!b.closest('section.card[data-card-kind="hybrid"]')).map(b=>b.id).filter(Boolean); saveActive(ids); }
-function setActiveInGroup(groupAttr, activeBtn){ const group = document.querySelector(`.btns[data-group="${groupAttr}"]`); if(!group) return; group.querySelectorAll('.btn').forEach(b=>{ b.classList.remove('active','btn-primary'); if(!b.classList.contains('btn-ghost')) b.classList.add('btn-ghost'); }); if(activeBtn){ activeBtn.classList.add('active','btn-primary'); activeBtn.classList.remove('btn-ghost'); } persistActiveButtons(); }
+function setActiveInGroup(groupAttr, activeBtn){ const group=document.querySelector(`[data-group="${groupAttr}"]`); if(!group) return; group.querySelectorAll('input[type="checkbox"]').forEach(input=>{ input.checked=(input===activeBtn); }); }
 function restoreActiveButtons(){ loadActive().forEach(id=>{ const b=document.getElementById(id); if(b && !b.closest('section.card[data-card-kind="hybrid"]')){ b.classList.add('active','btn-primary'); b.classList.remove('btn-ghost'); } }); }
 function setStandaloneButtonState(btn, on){ if(!btn) return; btn.classList.toggle('active', !!on); btn.classList.toggle('btn-primary', !!on); btn.classList.toggle('btn-ghost', !on); }
 // DOM refs
-const ppmGroup=document.querySelector('.btns[data-group="ppm"]');
+const ppmGroup=document.querySelector('[data-group="ppm"]');
 const buffGroup=document.querySelector('.btns[data-group="buff"]');
 const btnSchablonAdd=document.getElementById('btn_schablon_add');
 const selPlac=document.getElementById('tp_placeras');
@@ -307,12 +327,11 @@ const awaitSaveAmount=document.getElementById('await_save_amount');
 const awaitSaveForm=document.getElementById('await_save_form');
 const awaitSaveReason=document.getElementById('await_save_reason');
 const btnAwaitSaveCopy=document.getElementById('btn_await_save_copy');
-const btnNUpd=document.getElementById('btn_notes_update');
-function syncStandaloneButtons(){ [btnSchablonAdd, btnTPAdd, btnAnnatAdd, btnGrpCopy].forEach(btn=>{ if(btn) setStandaloneButtonState(btn, btn.classList.contains('active')); }); }
+function syncStandaloneButtons(){ if(btnSchablonAdd) btnSchablonAdd.checked=!!(store.schablon||'').trim(); if(btnGrpCopy) btnGrpCopy.checked=!!(store.grp||'').trim(); [btnTPAdd, btnAnnatAdd].forEach(btn=>{ if(btn) setStandaloneButtonState(btn, btn.classList.contains('active')); }); }
 function clearTPState(){ if(selPlac) selPlac.value=''; if(selVC) selVC.value=''; if(warnTP) warnTP.style.display='none'; setBlock('tp',''); if(btnTPAdd) setStandaloneButtonState(btnTPAdd, false); persistActiveButtons(); }
 function clearFMState(){ fmChoices.forEach(function(r){ r.checked=false; }); if(fmSandningRow) fmSandningRow.hidden=true; if(selFM) selFM.value=''; if(warnFM) warnFM.style.display='none'; setBlock('fm',''); }
 function clearAnnatState(){ if(selU) selU.value=''; if(selT) selT.value=''; if(warnA) warnA.style.display='none'; setBlock('annat',''); if(btnAnnatAdd) setStandaloneButtonState(btnAnnatAdd, false); persistActiveButtons(); }
-function clearNotesState(){ taNotes.value=''; setBlock('ovrigt',''); btnNUpd.classList.remove('active'); saveNotes(); }
+function clearNotesState(){ taNotes.value=''; setBlock('ovrigt',''); saveNotes(); }
 function clearNotesExtraState(){ if(!taNotesExtra) return; taNotesExtra.value=''; saveNotesExtra(); }
 function performFullReset(){
  resetHybridCards();
@@ -320,6 +339,7 @@ function performFullReset(){
  renderOut();
  document.querySelectorAll('.btn.active').forEach(b=>b.classList.remove('active'));
  document.querySelectorAll('.btns[data-group] .btn').forEach(b=>{ b.classList.remove('active','btn-primary'); b.classList.add('btn-ghost'); });
+ document.querySelectorAll('#notes_left_stack section[data-order-id="notes_bundle"] input[type="checkbox"]').forEach(input=>{ input.checked=false; });
  syncStandaloneButtons();
  clearTPState();
  clearFMState();
@@ -376,10 +396,10 @@ button.addEventListener('click',function(){ const current=load(); if(current.act
 }
 registerHybridInitializer('tpNewCard', initTpNewCard);
 // PPM
-ppmGroup.querySelector('#btn_ppm_byter').addEventListener('click',function(){ if(this.classList.contains('active')){ setBlock('ppm',''); setActiveInGroup('ppm', null); showToast('Premiepension: Allmänt råd borttaget'); return; } setBlock('ppm','ALLMÄN PENSION\nVi har gått igenom din premiepension på en övergripande nivå. Jag har gett dig ett allmänt råd att se över dina placeringar utifrån din situation och hänvisat dig till Pensionsmyndigheten för eventuella förändringar.'); setActiveInGroup('ppm', this); showToast('Premiepension: Allmänt råd tillagt'); });
-ppmGroup.querySelector('#btn_ppm_behaller').addEventListener('click',function(){ if(this.classList.contains('active')){ setBlock('ppm',''); setActiveInGroup('ppm', null); showToast('Premiepension: Inget råd borttaget'); return; } setBlock('ppm','ALLMÄN PENSION\nVi har gått igenom din allmänna pension på en övergripande nivå.'); setActiveInGroup('ppm', this); showToast('Premiepension: Inget råd tillagt'); });
+ppmGroup.querySelector('#btn_ppm_byter').addEventListener('change',function(){ if(!this.checked){ setBlock('ppm',''); setActiveInGroup('ppm', null); showToast('Premiepension: Allmänt råd borttaget'); return; } setBlock('ppm','ALLMÄN PENSION\nVi har gått igenom din premiepension på en övergripande nivå. Jag har gett dig ett allmänt råd att se över dina placeringar utifrån din situation och hänvisat dig till Pensionsmyndigheten för eventuella förändringar.'); setActiveInGroup('ppm', this); showToast('Premiepension: Allmänt råd tillagt'); });
+ppmGroup.querySelector('#btn_ppm_behaller').addEventListener('change',function(){ if(!this.checked){ setBlock('ppm',''); setActiveInGroup('ppm', null); showToast('Premiepension: Inget råd borttaget'); return; } setBlock('ppm','ALLMÄN PENSION\nVi har gått igenom din allmänna pension på en övergripande nivå.'); setActiveInGroup('ppm', this); showToast('Premiepension: Inget råd tillagt'); });
 // Schablonberäkning
-btnSchablonAdd.addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('schablon',''); setStandaloneButtonState(this, false); persistActiveButtons(); showToast('Schablonberäkning: borttagen'); return; } setBlock('schablon', "SCHABLONBERÄKNING\nDu har valt att inte logga in på minPension.se vid detta rådgivningstillfälle. Vi har därför inte haft möjlighet att hämta exakta uppgifter om dina intjänade pensioner.\nFör att kunna genomföra en översiktlig pensionsanalys har vi i stället använt schablonberäkningar baserade på din nuvarande lön, antagna intjänandeperioder och allmänna pensionsregler.\nAnalysen ger en uppskattad prognos och kan avvika från din faktiska pensionsbehållning. Jag rekommenderar verifiering via minPension.se för mer precisa uppgifter.\nDu har tagit del av och godkänt att rådgivningen baseras på schabloniserade antaganden."); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Schablonberäkning: tillagd'); });
+btnSchablonAdd.addEventListener('change', function(){ if(!this.checked){ setBlock('schablon',''); showToast('Schablonberäkning: borttagen'); return; } setBlock('schablon', "SCHABLONBERÄKNING\nDu har valt att inte logga in på minPension.se vid detta rådgivningstillfälle. Vi har därför inte haft möjlighet att hämta exakta uppgifter om dina intjänade pensioner.\nFör att kunna genomföra en översiktlig pensionsanalys har vi i stället använt schablonberäkningar baserade på din nuvarande lön, antagna intjänandeperioder och allmänna pensionsregler.\nAnalysen ger en uppskattad prognos och kan avvika från din faktiska pensionsbehållning. Jag rekommenderar verifiering via minPension.se för mer precisa uppgifter.\nDu har tagit del av och godkänt att rådgivningen baseras på schabloniserade antaganden."); showToast('Schablonberäkning: tillagd'); });
 // TP
 function validateTP(){ const a=selPlac.value.trim(), b=selVC.value.trim(); const ok=!!a && !!b; warnTP.style.display = ok ? 'none' : 'block'; return ok ? {a,b} : null; }
 function buildTP({a,b}){ return [ `Vi har idag pratat om din tjänstepension och du har gjort ett aktivt val som innebär att intjänat tjänstepensionskapital ska placeras hos ${a}`, `Under rådgivningen har du muntligen gett mig fullmakt att tillsammans med dig och i samförstånd logga in på din valcentral ${b} och genomfört ändringen och flytten.`, `(Signeringarna för detta gjordes med ditt bank-id under tiden vi delat skärm.)` ].join('\n'); }
@@ -391,7 +411,7 @@ function initHallbarhetCard(card){
  const storageNs=card.dataset.storageNs||('othernotes.hybrid.'+cardId);
  const stateKey=storageNs+'.state.v1';
  const cardTitle=((card.querySelector(':scope > header h2')||{}).textContent||'Hållbarhetspreferenser').trim();
- const button=card.querySelector('.content .btn');
+ const button=card.querySelector('.content input[type="checkbox"]');
  if(!button) return;
  function normalizeState(data){
   return { active: !!(data && data.active===true) };
@@ -408,9 +428,7 @@ function initHallbarhetCard(card){
  }
  function applyState(state){
   var normalized=normalizeState(state);
-  button.classList.toggle('active', !!normalized.active);
-  button.classList.toggle('btn-primary', !!normalized.active);
-  button.classList.toggle('btn-ghost', !normalized.active);
+  button.checked=!!normalized.active;
   setBlock(blockKey, buildText(normalized));
  }
  function resetCard(){
@@ -418,9 +436,8 @@ function initHallbarhetCard(card){
   saveState(next);
   applyState(next);
  }
- button.addEventListener('click', function(){
-  var current=loadState();
-  var next=normalizeState({ active: !current.active });
+ button.addEventListener('change', function(){
+  var next=normalizeState({ active: !!button.checked });
   saveState(next);
   applyState(next);
   showToast(cardTitle+': '+(next.active ? 'tillagd' : 'borttagen'));
@@ -429,6 +446,20 @@ function initHallbarhetCard(card){
  applyState(loadState());
 }
 registerHybridInitializer('hallbarhetCard', initHallbarhetCard);
+function initNotesBundleCard(card){
+ const moduleIds=['grp','ppm','hallbarhet','schablon'];
+ moduleIds.forEach(id=>{
+  const source=notesLeftStack.querySelector(':scope > section.card[data-order-id="'+id+'"]');
+  const host=card.querySelector('[data-module-host="'+id+'"]');
+  const content=source && source.querySelector(':scope > .content');
+  if(!source || !host || !content) return;
+  while(content.firstChild) host.appendChild(content.firstChild);
+  source.hidden=true;
+  source.setAttribute('data-card-disabled','1');
+ });
+ registerHybridCard(card, { storageNamespace:card.dataset.storageNs||'othernotes.hybrid.notes_bundle', reset:function(){} });
+}
+registerHybridInitializer('notesBundleCard', initNotesBundleCard);
 document.querySelectorAll('section.card[data-card-kind="hybrid"]').forEach(card=>{ const initKey=card.dataset.hybridInit||''; const initializer=hybridCardInitializers.get(initKey); if(typeof initializer==='function') initializer(card); });
 // Buffert
 buffGroup.querySelector('#btn_buff_avr').addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('buff',''); setActiveInGroup('buff', null); showToast('Buffert: Avrådan av'); return; } setBlock('buff','Målet har inte behandlats i mötet på grund av begränsad buffert. Jag har rekommenderat dig att först spara ihop en buffert på ett vanligt sparkonto alternativt ett olåst fasträntekonto via din bank som är tillräcklig för att klara en kortsiktig ekonomisk utmaning innan jag rekommenderar att börja spara långsiktigt hos oss.'); setActiveInGroup('buff', this); showToast('Buffert: Avrådan'); });
@@ -441,7 +472,7 @@ function updateFMVisibility(){ const change=getFMChoice()==='change'; fmSandning
 function syncFMIfActive(){ updateFMVisibility(); const v=validateFM(); if(!v){ setBlock('fm',''); if(warnFM) warnFM.style.display='none'; return; } setBlock('fm',buildFM(v)); if(warnFM) warnFM.style.display='none'; }
 fmChoices.forEach(function(r){ r.addEventListener('change',syncFMIfActive); });
 if(selFM){ ['input','change'].forEach(function(ev){ selFM.addEventListener(ev,syncFMIfActive); }); }
-if(btnGrpCopy){ btnGrpCopy.addEventListener('click', function(){ if(this.classList.contains('active')){ setBlock('grp',''); setStandaloneButtonState(this, false); persistActiveButtons(); showToast('Grp/Skador: borttagen'); return; } const text="GRP/SKADOR\nVi har i dag gått igenom ditt behov av fackliga försäkringar. Jag har informerat dig om hur ditt nuvarande försäkringsskydd ser ut och hänvisat dig till vår hemsida för eventuella kompletteringar. \nJag har även ställt frågor kring eventuella oanmälda skador och hänvisat dig till rätt kontaktväg för att hantera dessa."; setBlock('grp', text); setStandaloneButtonState(this, true); persistActiveButtons(); showToast('Grp/Skador: tillagd'); }); }
+if(btnGrpCopy){ btnGrpCopy.addEventListener('change', function(){ if(!this.checked){ setBlock('grp',''); showToast('Grp/Skador: borttagen'); return; } const text="GRP/SKADOR\nVi har i dag gått igenom ditt behov av fackliga försäkringar. Jag har informerat dig om hur ditt nuvarande försäkringsskydd ser ut och hänvisat dig till vår hemsida för eventuella kompletteringar. \nJag har även ställt frågor kring eventuella oanmälda skador och hänvisat dig till rätt kontaktväg för att hantera dessa."; setBlock('grp', text); showToast('Grp/Skador: tillagd'); }); }
 // Annat mål
 function validateAnnat(){ const u=selU.value.trim(), t=selT.value.trim(); const ok= !!u && !!t; warnA.style.display = ok ? 'none' : 'block'; return ok ? {urspr:u, till:t} : null; }
 function buildAnnat({urspr, till}){ return `Inledningsvis var tanken enbart att se över ${urspr} men under rådgivningens gång ville du även starta ett ${till}`; }
@@ -449,16 +480,16 @@ btnAnnatAdd.addEventListener('click', function(){ if(this.classList.contains('ac
 if(btnAwaitSaveCopy){ btnAwaitSaveCopy.addEventListener('click', async function(){ var amount=(awaitSaveAmount && awaitSaveAmount.value ? String(awaitSaveAmount.value) : '').trim(); var form=(awaitSaveForm && awaitSaveForm.value ? awaitSaveForm.value : ''); var reason=(awaitSaveReason && awaitSaveReason.value ? awaitSaveReason.value : ''); var formText = form==='fond' ? 'fond förvaltad kapitalförsäkring' : (form==='traditionellt ' ? 'traditionellt förvaltad kapitalförsäkring' : ''); var reasonText = reason==='annat_sparande' ? 'att du prioriterar annat sparande' : (reason==='ekonomiskt_utrymme' ? 'att du saknar utrymme i ekonomin just nu' : (reason==='vill_avvakta' ? 'att du vill fundera ett tag' : '')); if(!amount || !formText || !reasonText){ alert('Fyll i sparbelopp, sparform och orsak till att avvakta.'); return; } var text='Vi har i mötet genomfört en individuell behovsanalys, baserad på nuvarande pensionstillgångar, förväntade framtida premieinbetalningar samt individuella mål, där du har detaljerat ditt behov av framtida pension. Utkomsten av analysen är att du skulle behöva starta ett kompletterande sparande på ca '+amount+' kr/mån till pension för att nå dina mål. Baserat på lämplighetsbedömningen dokumenterad nedan har jag rekommenderat dig att spara i en '+formText+', med en fondportfölj som är lämplig utifrån dina investeringsmål, spartid, kunskap och erfarenhet, riskvilja, hållbarhetspreferenser samt ekonomiska situation.\n\nDu väljer att avvakta med sparandet på grund av '+reasonText+'.'; await copyText(text); showToast('Text kopierad.'); }); }
 // Utfall
 // Notes update/clear
-btnNUpd.addEventListener('click', function(){ const t = taNotes.value.trim(); setBlock('ovrigt', t ? 'KOMPLETTERANDE DOKUMENTATION\n'+t : ''); if(t) this.classList.add('active'); else this.classList.remove('active'); showToast('Egna tillägg uppdaterade'); });
+function syncNotesBlock(){ const t=taNotes.value.trim(); setBlock('ovrigt', t ? 'KOMPLETTERANDE DOKUMENTATION\n'+t : ''); }
 document.getElementById('btn_copy').addEventListener('click', async function(){ const text=out.textContent||''; if(!text.trim()) return showToast('Ingen text att kopiera.'); try{ await navigator.clipboard.writeText(text); showToast('Text kopierad.'); } catch{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(_){ } document.body.removeChild(ta); showToast('Text kopierad.'); } });
 // snapshot fields + listeners
 function snapshotFields(){ return { tp_placeras: selPlac.value, tp_valcentral: selVC.value, fm_choice: getFMChoice(), fm_sandning: selFM.value, annat_urspr: selU.value, annat_tillagg: selT.value }; }
 ;['input','change'].forEach(ev=>{ [selPlac, selVC, selFM, selU, selT].concat(fmChoices).forEach(el=>{ el.addEventListener(ev, ()=> safeFields()); }); });
 function safeFields(){ try{ safeStorage.setItem('othernotes.fields.v1', JSON.stringify(snapshotFields())); }catch(_){ } }
-taNotes.addEventListener('input', saveNotes); if(taNotesExtra) taNotesExtra.addEventListener('input', saveNotesExtra);
+taNotes.addEventListener('input', function(){ saveNotes(); syncNotesBlock(); }); if(taNotesExtra) taNotesExtra.addEventListener('input', saveNotesExtra);
 // init
 try{ const s = JSON.parse(safeStorage.getItem('othernotes.store.v1')||'{}'); if(s && typeof s==='object'){ Object.keys(s).forEach(k=>{ if(typeof s[k]==='string') store[k]=s[k]; }); } }catch(_){ }
-renderOut(); restoreActiveButtons(); syncStandaloneButtons(); loadNotes(); loadNotesExtra(); try{ const f=JSON.parse(safeStorage.getItem('othernotes.fields.v1')||'{}'); if(f.tp_placeras) selPlac.value=f.tp_placeras; if(f.tp_valcentral) selVC.value=f.tp_valcentral; if(f.fm_choice){ const r=fmChoices.find(function(x){ return x.value===f.fm_choice; }); if(r) r.checked=true; } if(f.fm_sandning) selFM.value=f.fm_sandning; updateFMVisibility(); syncFMIfActive(); if(f.annat_urspr) selU.value=f.annat_urspr; if(f.annat_tillagg) selT.value=f.annat_tillagg; }catch(_){ }
+renderOut(); restoreActiveButtons(); syncStandaloneButtons(); loadNotes(); syncNotesBlock(); loadNotesExtra(); try{ const f=JSON.parse(safeStorage.getItem('othernotes.fields.v1')||'{}'); if(f.tp_placeras) selPlac.value=f.tp_placeras; if(f.tp_valcentral) selVC.value=f.tp_valcentral; if(f.fm_choice){ const r=fmChoices.find(function(x){ return x.value===f.fm_choice; }); if(r) r.checked=true; } if(f.fm_sandning) selFM.value=f.fm_sandning; updateFMVisibility(); syncFMIfActive(); if(f.annat_urspr) selU.value=f.annat_urspr; if(f.annat_tillagg) selT.value=f.annat_tillagg; }catch(_){ }
 function stod1ResetAll(){
  performFullReset();
  try{ safeStorage.removeItem('othernotes.collapse.v1'); }catch(_){ }

@@ -21,8 +21,8 @@
  header.app h1{margin:0;font-size:18px}
  main{display:grid;gap:16px;grid-template-columns:1.1fr 0.9fr;align-items:start;padding:0 16px 16px}
  @media (max-width: 1000px){ main{grid-template-columns:1fr} }
- .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
- .card>header{background:transparent;border-bottom:1px solid #283244;padding:12px 14px}
+ .card{background:var(--card);border:1px solid var(--accent);border-radius:10px;overflow:hidden}
+ .card>header{background:transparent;border-bottom:1px solid var(--accent);padding:12px 14px}
  .card>header h2{margin:0;font-size:15px}
  .content-title{margin:0;font-size:15px;font-weight:600;color:var(--text)}
  .content{padding:14px 16px}
@@ -128,7 +128,7 @@
  .sparbeslut-field textarea{height:78px;min-height:78px;max-height:78px;resize:none}
  @media(max-width:1200px){.sparbeslut-grid,.sparbeslut-standard-row{grid-template-columns:1fr}}
  :root[data-theme="light"] .sparbeslut-field label{color:#334155}
- .tp-new-list{display:grid;gap:12px}
+ .tp-new-list{display:grid;gap:2px}
  .tp-new-await[hidden],.tp-new-list[hidden]{display:none}
  .tp-new-area{background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 12px;display:grid;gap:10px}
  .tp-new-area-head{display:flex;align-items:center;gap:8px;font-weight:700}
